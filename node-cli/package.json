@@ -24,7 +24,7 @@
   "scripts": {
     "build": "wasm-pack build -t nodejs --out-name transform --no-pack --release -d \"$(pwd)/tr\" ../wasm-tr-str",
     "test": "node test.js",
-    "publish": "npm run build && rm tr/.gitignore && npm publish"
+    "prepub": "npm run build && rm tr/.gitignore"
   },
   "files": [
     "tr",
