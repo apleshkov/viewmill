@@ -1,0 +1,30 @@
+{
+  "name": "viewmill-runtime",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "apleshkov",
+  "description": "The viewmill runtime",
+  "keywords": [
+    "viewmill",
+    "runtime"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apleshkov/viewmill",
+    "directory": "runtime"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "test": "npx tsc -m commonjs -d false --outDir tests/viewmill && npx jest tests/test.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "jest-environment-jsdom": "^29.6.1",
+    "typescript": "^5.1.6"
+  }
+}

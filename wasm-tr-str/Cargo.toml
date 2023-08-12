@@ -1,0 +1,14 @@
+[package]
+name = "wasm-tr-str"
+description = "viewmill wasm binding for the string-to-string transformation"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+transformer = { path = "../transformer" }
+getrandom = { version = "0.2", features = ["js"] }

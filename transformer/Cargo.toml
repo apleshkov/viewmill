@@ -1,0 +1,21 @@
+[package]
+name = "transformer"
+description = "viewmill transformer"
+edition = "2021"
+license = "MIT"
+version = "0.1.0"
+
+[lib]
+
+[dependencies]
+regex = "1.9.1"
+swc_core = { version = "0.79.*", features = [
+    "common",
+    "ecma_ast_serde",
+    "ecma_visit",
+    "ecma_parser",
+    "ecma_codegen",
+    "testing_transform",
+    "testing",
+] }
+serde = "1"

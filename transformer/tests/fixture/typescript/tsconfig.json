@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "jsx": "preserve",
+        "paths": {
+            "viewmill-runtime": [
+                "../../../../runtime"
+            ]
+        }
+    },
+}
