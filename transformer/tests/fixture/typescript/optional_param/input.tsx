@@ -1,0 +1,1 @@
+export default (a: number, b?: boolean) => (<>{a}{b}</>);

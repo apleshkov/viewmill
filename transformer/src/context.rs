@@ -230,7 +230,10 @@ impl TrContext {
                 args.add_expr({
                     let mut obj = ObjLitBuilder::default();
                     for p in params.iter() {
-                        obj.add_key(PropName::Ident(p.clone()), self.param(ident_expr(&p.sym)));
+                        let mut p = p.clone();
+                        p.optional = false;
+                        let value = self.param(ident_expr(&p.sym));
+                        obj.add_key(PropName::Ident(p), value);
                     }
                     obj.build_expr()
                 })
