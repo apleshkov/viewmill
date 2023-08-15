@@ -361,7 +361,7 @@ export function cmp<I extends Insertable, P>(
 export function view<M extends object>(model: M, insertable: (model: M, unmountSignal: AbortSignal) => Insertable) {
     return {
         model,
-        insert(target: Node, anchor: Node | null) {
+        insert(target: Node, anchor: Node | null = null) {
             const abortController = new AbortController();
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");
