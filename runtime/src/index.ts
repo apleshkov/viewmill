@@ -148,7 +148,7 @@ export type Insertable = (
     Iterable<Insertable>
 );
 
-export function insert(input: Insertable, target: Node, anchor: Node | null): Remover | null {
+export function insert(input: Insertable, target: Node, anchor: Node | null = null): Remover | null {
     if (input === null || typeof input === "undefined") {
         return null;
     } else if (input instanceof Insertion) {
