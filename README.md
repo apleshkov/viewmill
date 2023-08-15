@@ -51,7 +51,7 @@ export default (count: number) => {
 
 Then transform it with `viewmill` by calling:
 ```sh
-npx viewmill --suffix \"-view\" src
+npx viewmill --suffix "-view" src
 ```
 
 It'll create a file `src/counter-view.ts`:
