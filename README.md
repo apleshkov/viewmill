@@ -7,10 +7,24 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
 *Note*: the view cannot update its state from the inside.
 
 `viewmill` supports all the valid JSX syntax, including:
-- conditionals via the ternary operator: `{loading ? <span>Loading...</span> : <strong>Loaded!</strong>}`
-- loops via the spread child syntax:
-    - `<>{...items}</>`
-    - `<ul>{...items.filter(...).map((entry, idx) => <li>{idx + 1}: {entry}</li>)}</ul>`
+
+- **conditionals** via the ternary operator:
+```tsx
+    {loading
+        ? <span>Loading...</span>
+        : <strong>Loaded!</strong>}
+```
+
+- **loops** via the spread child syntax:
+```tsx
+    <>{...items}</>
+    <ul>
+        {...items.map((entry, idx) => (
+            <li>{idx + 1}: {entry}</li>
+        ))}
+    </ul>
+```
+
 - [custom components](#custom-components)
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
