@@ -80,7 +80,12 @@ export default function (count: number) {
 };
 ```
 
-Ok, so now we need to bundle our code and finally look at it. One could choose not to bundle and arrange everything manually, but here we're going to use [esbuild](https://esbuild.github.io) and create two additional files: `src/index.html` and `src/index.ts`.
+Ok, so now we need to bundle our code and finally look at it. One could choose not to bundle and arrange everything manually, but here we're going to use [esbuild](https://esbuild.github.io):
+```sh
+npm i --save-dev esbuild
+```
+
+Then let's create two additional files: `src/index.html` and `src/index.ts`.
 
 ```html
 <!-- src/index.html -->
@@ -126,7 +131,7 @@ view.model.count.setValue(1);
 view.insert(document.getElementById("app"));
 ```
 
-We need to re-run the transformation and bundling commands above, and then refresh the opened page. Now it says "The current value is 1!" and that's correct.
+We need to re-run the transformation and bundling commands, and then refresh the opened page. Now it says "The current value is 1!" and that's correct.
 
 Now let's make things more dynamic and add a button to increment the counter:
 ```tsx
@@ -242,6 +247,82 @@ const { unmountSignal, remove } = view.insert(document.getElementById("app"));
 unmountSignal.addEventListener("abort", () => console.log("Bye!"));
 
 remove();
+```
+
+### Web Components
+
+The `viewmill` views are intended to be a part of Web Components. So here's an axample of how to create one for the counter:
+```ts
+// src/my-counter.ts
+
+import { InsertedView } from "viewmill-runtime";
+import Counter from "./counter-view";
+
+customElements.define("my-counter", class extends HTMLElement {
+
+    private view = Counter(0);
+
+    private insertedView?: InsertedView;
+
+    private get counter() {
+        return this.view.model.count;
+    }
+
+    connectedCallback() {
+        if (this.isConnected) {
+            const inserted = this.view.insert(this);
+            const {
+                unmountSignal: signal,
+                querySelector
+            } = inserted;
+            querySelector("button")?.addEventListener("click", () => {
+                this.counter.updateValue((c) => c + 1);
+            }, { signal });
+            //   ^^^^^^ Please, note how we use the signal here
+            this.insertedView = inserted;
+        }
+    }
+
+    disconnectedCallback() {
+        // The element and all its children are being removed here,
+        // so it's ok just to unmount the view to trigger the `unmountSignal`
+        this.insertedView?.unmount();
+        this.insertedView = null;
+    }
+
+    static get observedAttributes() {
+        return ["value"];
+    }
+
+    attributeChangedCallback(name: string, _?: string, newValue?: string) {
+        if (name === "value") {
+            this.counter.setValue(+newValue);
+        }
+    }
+});
+```
+
+Then we can modify the `index.ts` file:
+```ts
+// src/index.ts
+
+export * from "./my-counter";
+```
+
+... and the `index.html` file:
+```html
+<!-- src/index.html -->
+
+<html>
+<head>
+    <title>Counter</title>
+</head>
+<body>
+    <script src="../dist/index.js"></script>
+    <my-counter></my-counter>
+    <my-counter value="123"></my-counter>
+</body>
+</html>
 ```
 
 ## Custom Components
