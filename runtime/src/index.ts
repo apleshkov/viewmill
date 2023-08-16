@@ -193,7 +193,7 @@ export class NodeSpan {
     private start: Node;
     private end: Node;
 
-    constructor(target: Node, anchor: Node | null, name: string = "span") {
+    constructor(target: Node, anchor: Node | null = null, name: string = "span") {
         this.container = target;
         this.end = target.insertBefore(document.createComment(name + ":end"), anchor);
         this.start = target.insertBefore(document.createComment(name + ":start"), this.end);
@@ -358,17 +358,33 @@ export function cmp<I extends Insertable, P>(
     return create(props, { unmountSignal });
 }
 
-export function view<M extends object>(model: M, insertable: (model: M, unmountSignal: AbortSignal) => Insertable) {
+export type View<M extends object = {}> = {
+    model: M;
+    insert(target: Node, anchor?: Node | null): InsertedView;
+};
+
+export type InsertedView = {
+    unmountSignal: AbortSignal;
+    querySelector(selectors: string): Element | null;
+    querySelectorAll(selectors: string): Element[];
+    remove(): void;
+    unmount(): void;
+};
+
+export function view<M extends object>(
+    model: M,
+    insertable: (model: M, unmountSignal: AbortSignal) => Insertable
+): View<M> {
     return {
         model,
-        insert(target: Node, anchor: Node | null = null) {
+        insert(target, anchor = null) {
             const abortController = new AbortController();
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");
             span.append(insertable(model, unmountSignal));
             return {
                 unmountSignal,
-                querySelector(selectors: string): Element | null {
+                querySelector(selectors) {
                     for (const el of span.elementGenerator()) {
                         const result = el.matches(selectors) ? el : el.querySelector(selectors);
                         if (result) {
@@ -377,7 +393,7 @@ export function view<M extends object>(model: M, insertable: (model: M, unmountS
                     }
                     return null;
                 },
-                querySelectorAll(selectors: string): Element[] {
+                querySelectorAll(selectors) {
                     let result: Element[] = [];
                     for (const el of span.elementGenerator()) {
                         if (el.matches(selectors)) {
