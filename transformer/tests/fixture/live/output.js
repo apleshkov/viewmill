@@ -6,7 +6,7 @@ export default function(a, b) {
     }, ({
         a,
         b
-    }, unmountSignal)=>{
+    })=>{
         const c = viewmill.live(()=>(a.getValue() + b.getValue()), [
             a,
             b

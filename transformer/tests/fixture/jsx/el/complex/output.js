@@ -9,12 +9,12 @@ export default function(a, b) {
     }, ({
         a,
         b
-    }, unmountSignal)=>{
+    })=>{
         const c = viewmill.live(()=>(a.getValue() + b.getValue()), [
             a,
             b
         ]);
-        return viewmill.el("<div><h1>Conditions</h1><p><!></p><!><h1>Exprs</h1><!><p><!></p><h1>Lists</h1><!><!><ul><!></ul><h1>Other</h1><!></div>", (container)=>{
+        return viewmill.el("<div><h1>Conditions</h1><p><!></p><!><h1>Exprs</h1><!><p><!></p><h1>Lists</h1><!><!><ul><!></ul><h1>Other</h1><!></div>", (container, unmountSignal)=>{
             const div__1 = container.firstChild;
             const h1__1 = div__1.firstChild;
             const p__1 = h1__1.nextSibling;
@@ -23,7 +23,7 @@ export default function(a, b) {
                 a
             ]), p__1, anchor__1);
             const anchor__2 = p__1.nextSibling;
-            viewmill.insert(viewmill.cond(()=>(c.getValue()), ()=>(viewmill.el("<p>c = <!></p>", (container1)=>{
+            viewmill.insert(viewmill.cond(()=>(c.getValue()), ()=>(viewmill.el("<p>c = <!></p>", (container1, unmountSignal1)=>{
                     const p__2 = container1.firstChild;
                     const anchor__2 = p__2.firstChild.nextSibling;
                     viewmill.insert(viewmill.expr(()=>(c.getValue()), [
@@ -69,7 +69,7 @@ export default function(a, b) {
                     c.getValue(),
                     b.getValue(),
                     a.getValue()
-                ].map((v, i)=>viewmill.el("<li><!>: <!></li>", (container1)=>{
+                ].map((v, i)=>viewmill.el("<li><!>: <!></li>", (container1, unmountSignal1)=>{
                         const li__1 = container1.firstChild;
                         const anchor__7 = li__1.firstChild;
                         viewmill.insert(i, li__1, anchor__7);
@@ -83,7 +83,7 @@ export default function(a, b) {
             const h1__4 = ul__1.nextSibling;
             const anchor__8 = h1__4.nextSibling;
             viewmill.insert([
-                viewmill.el("<p><!></p>", (container1)=>{
+                viewmill.el("<p><!></p>", (container1, unmountSignal1)=>{
                     const p__3 = container1.firstChild;
                     const anchor__8 = p__3.firstChild;
                     viewmill.insert(viewmill.expr(()=>(a.getValue()), [

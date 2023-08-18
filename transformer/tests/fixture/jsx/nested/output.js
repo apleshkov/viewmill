@@ -6,13 +6,13 @@ export default function(a, b) {
     }, ({
         a,
         b
-    }, unmountSignal)=>{
+    })=>{
         const c = viewmill.live(()=>(a.getValue() + b.getValue()), [
             a,
             b
         ]);
         function f1(x) {
-            return viewmill.el("<span><!></span>", (container)=>{
+            return viewmill.el("<span><!></span>", (container, unmountSignal)=>{
                 const span__1 = container.firstChild;
                 const anchor__1 = span__1.firstChild;
                 viewmill.insert(viewmill.expr(()=>(a.getValue() + x + c.getValue()), [
@@ -26,7 +26,7 @@ export default function(a, b) {
                 x
             ];
         };
-        const f3 = (x)=>viewmill.el("<div><!></div>", (container)=>{
+        const f3 = (x)=>viewmill.el("<div><!></div>", (container, unmountSignal)=>{
                 const div__1 = container.firstChild;
                 const anchor__1 = div__1.firstChild;
                 viewmill.insert(x, div__1, anchor__1);

@@ -12,7 +12,7 @@ export default function(a = 1, [[[b]]], { c: { d } } = {
         a,
         b,
         d
-    }, unmountSignal)=>{
+    })=>{
         return a.getValue() + b.getValue() + d.getValue();
     });
 };

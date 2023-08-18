@@ -1,9 +1,6 @@
 use swc_core::{
     common::{sync::Lazy, DUMMY_SP},
-    ecma::{
-        ast::*,
-        atoms::{js_word, JsWord},
-    },
+    ecma::{ast::*, atoms::JsWord},
 };
 
 use super::{
@@ -11,25 +8,18 @@ use super::{
     live::{deps_expr, DestructArg},
     scope::Scope,
     utils::*,
-    Syntax,
 };
 
 pub struct TrContext {
-    syntax: Syntax,
     lib: NameAndExpr,
-    unmount_sig: NameAndExpr,
 }
 
 impl TrContext {
-    pub fn new(syntax: Syntax, src: &str, scope: &mut Scope) -> Self {
+    pub fn new(src: &str, scope: &mut Scope) -> Self {
         let lib_name = glob::uname(LIB, src);
         scope.insert(&lib_name);
-        let unmount_sig_name = glob::uname(UNMOUNT_SIGNAL, src);
-        scope.insert(&unmount_sig_name);
         Self {
-            syntax,
             lib: NameAndExpr::ident(lib_name),
-            unmount_sig: NameAndExpr::ident(unmount_sig_name),
         }
     }
 }
@@ -122,6 +112,7 @@ impl TrContext {
         name: &str,
         value: Box<Expr>,
         deps: Option<&Vec<JsWord>>,
+        sig: Option<&JsWord>,
     ) -> Box<Expr> {
         obj_method_call(
             self.lib.expr(),
@@ -132,6 +123,9 @@ impl TrContext {
                 if let Some(deps) = deps {
                     args.add_expr(arrow_short_expr(None, value));
                     args.add_expr(deps_expr(deps));
+                    if let Some(sig) = sig {
+                        args.add_expr(ident_expr(sig));
+                    }
                 } else {
                     args.add_expr(value);
                 }
@@ -144,6 +138,7 @@ impl TrContext {
         node_name: &JsWord,
         value: Box<Expr>,
         deps: Option<&Vec<JsWord>>,
+        sig: Option<&JsWord>,
     ) -> Box<Expr> {
         obj_method_call(
             self.lib.expr(),
@@ -153,6 +148,9 @@ impl TrContext {
                 if let Some(deps) = deps {
                     args.add_expr(arrow_short_expr(None, value));
                     args.add_expr(deps_expr(deps));
+                    if let Some(sig) = sig {
+                        args.add_expr(ident_expr(sig));
+                    }
                 } else {
                     args.add_expr(value);
                 }
@@ -195,6 +193,7 @@ impl TrContext {
         event_name: &str,
         cb: Box<Expr>,
         deps: Option<&Vec<JsWord>>,
+        sig: Option<&JsWord>,
     ) -> Box<Expr> {
         obj_method_call(
             self.lib.expr(),
@@ -205,6 +204,9 @@ impl TrContext {
                     .add_expr(cb);
                 if let Some(deps) = deps {
                     args.add_expr(deps_expr(deps));
+                    if let Some(sig) = sig {
+                        args.add_expr(ident_expr(sig));
+                    }
                 }
             })),
         )
@@ -217,7 +219,6 @@ impl TrContext {
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(name);
                 args.add_expr(props);
-                args.add_expr(self.unmount_sig.expr());
             })),
         )
     }
@@ -238,24 +239,13 @@ impl TrContext {
                     obj.build_expr()
                 })
                 .add_expr(arrow_expr(
-                    Some(vec![
-                        {
-                            let mut obj = ObjLitBuilder::default();
-                            for p in params.iter() {
-                                obj.add_shorthand(ident(&p.sym));
-                            }
-                            Pat::from(obj.build_expr())
-                        },
-                        {
-                            match self.syntax {
-                                Syntax::Js => Pat::from(self.unmount_sig.expr()),
-                                Syntax::Ts => Pat::from(BindingIdent {
-                                    id: ident(&self.unmount_sig.name),
-                                    type_ann: Some(UNMOUNT_SIGNAL_TYPE.clone()),
-                                }),
-                            }
-                        },
-                    ]),
+                    Some(vec![{
+                        let mut obj = ObjLitBuilder::default();
+                        for p in params.iter() {
+                            obj.add_shorthand(ident(&p.sym));
+                        }
+                        Pat::from(obj.build_expr())
+                    }]),
                     body,
                 ));
             })),
@@ -282,18 +272,6 @@ impl NameAndExpr {
 }
 
 static LIB: &str = "viewmill";
-
-static UNMOUNT_SIGNAL: &str = "unmountSignal";
-static UNMOUNT_SIGNAL_TYPE: Lazy<Box<TsTypeAnn>> = Lazy::new(|| {
-    Box::from(TsTypeAnn {
-        span: DUMMY_SP,
-        type_ann: Box::from(TsType::from(TsTypeRef {
-            span: DUMMY_SP,
-            type_name: TsEntityName::from(ident(&js_word!("AbortSignal"))),
-            type_params: None,
-        })),
-    })
-});
 
 static_jsword!(LIVE, "live");
 static_jsword!(PARAM, "param");

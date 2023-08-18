@@ -6,8 +6,8 @@ export default function(a, b) {
     }, ({
         a,
         b
-    }, unmountSignal)=>([
-            viewmill.el("<h1>a = <!></h1>", (container)=>{
+    })=>([
+            viewmill.el("<h1>a = <!></h1>", (container, unmountSignal)=>{
                 const h1__1 = container.firstChild;
                 const anchor__1 = h1__1.firstChild.nextSibling;
                 viewmill.insert(viewmill.expr(()=>(a.getValue()), [

@@ -4,7 +4,7 @@ export default function(a) {
         a: viewmill.param(a)
     }, ({
         a
-    }, unmountSignal)=>(viewmill.el('<div><h1>Header</h1><p>Some text</p><div><h3>Another header</h3><div>Text Text Text <!>, some text after<span>Text</span>Text<a href="#">Link to <!>!</a><p><!></p></div></div></div>', (container)=>{
+    })=>(viewmill.el('<div><h1>Header</h1><p>Some text</p><div><h3>Another header</h3><div>Text Text Text <!>, some text after<span>Text</span>Text<a href="#">Link to <!>!</a><p><!></p></div></div></div>', (container, unmountSignal)=>{
             const div__1 = container.firstChild;
             const h1__1 = div__1.firstChild;
             const p__1 = h1__1.nextSibling;

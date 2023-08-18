@@ -6,7 +6,7 @@ export default function(a: number, b?: boolean) {
     }, ({
         a,
         b
-    }, unmountSignal: AbortSignal)=>([
+    })=>([
             viewmill.expr(()=>(a.getValue()), [
                 a
             ]),

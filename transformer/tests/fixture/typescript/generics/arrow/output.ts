@@ -4,7 +4,7 @@ export default function<T>(a: T) {
         a: viewmill.param(a)
     }, ({
         a
-    }, unmountSignal: AbortSignal)=>{
+    })=>{
         return a.getValue();
     });
 };

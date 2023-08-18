@@ -9,10 +9,10 @@ export default function(a, b) {
     }, ({
         a,
         b
-    }, unmountSignal)=>{
+    })=>{
         return [
             123,
-            viewmill.el("<p> <!> <!>  <!> <!>  <!>  </p>", (container)=>{
+            viewmill.el("<p> <!> <!>  <!> <!>  <!>  </p>", (container, unmountSignal)=>{
                 const p__1 = container.firstChild;
                 const anchor__1 = p__1.firstChild.nextSibling;
                 viewmill.insert(viewmill.expr(()=>(a.getValue()), [
@@ -32,13 +32,13 @@ export default function(a, b) {
                 const anchor__5 = anchor__4.nextSibling.nextSibling;
                 viewmill.insert(2, p__1, anchor__5);
             }),
-            viewmill.el("<p>a is <span><!>  </span>   </p>", (container)=>{
+            viewmill.el("<p>a is <span><!>  </span>   </p>", (container, unmountSignal)=>{
                 const p__1 = container.firstChild;
                 const span__1 = p__1.firstChild.nextSibling;
                 const anchor__1 = span__1.firstChild;
                 viewmill.insert(1, span__1, anchor__1);
             }),
-            viewmill.el("<div>&nbsp;<!>&nbsp; &nbsp;<span>&nbsp;text</span><p>text&nbsp;</p><!>&nbsp;</div>", (container)=>{
+            viewmill.el("<div>&nbsp;<!>&nbsp; &nbsp;<span>&nbsp;text</span><p>text&nbsp;</p><!>&nbsp;</div>", (container, unmountSignal)=>{
                 const div__1 = container.firstChild;
                 const anchor__1 = div__1.firstChild.nextSibling;
                 viewmill.insert(viewmill.expr(()=>(a.getValue()), [
@@ -48,7 +48,7 @@ export default function(a, b) {
                 const p__1 = span__1.nextSibling;
                 const anchor__2 = p__1.nextSibling;
                 viewmill.insert([
-                    viewmill.el("<p><!></p>", (container1)=>{
+                    viewmill.el("<p><!></p>", (container1, unmountSignal1)=>{
                         const p__2 = container1.firstChild;
                         const anchor__2 = p__2.firstChild;
                         viewmill.insert(viewmill.expr(()=>(a.getValue()), [

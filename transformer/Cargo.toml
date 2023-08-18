@@ -3,7 +3,7 @@ name = "transformer"
 description = "viewmill transformer"
 edition = "2021"
 license = "MIT"
-version = "0.1.1"
+version = "0.2.0"
 
 [lib]
 

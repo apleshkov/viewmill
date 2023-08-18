@@ -140,7 +140,7 @@ pub fn tr_file(
     let mut root_scope = Scope::from(&module);
     let module = Program::Module(module)
         .fold_with({
-            let tr_ctx = TrContext::new(options.syntax, &fm.src, &mut root_scope);
+            let tr_ctx = TrContext::new(&fm.src, &mut root_scope);
             &mut as_folder(Transformer { root_scope, tr_ctx })
         })
         .module()

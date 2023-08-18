@@ -329,6 +329,7 @@ fn tr_el_attr(
                                 &event_name,
                                 expr.clone(),
                                 deps.as_ref(),
+                                Some(&builder.unmount_sig_name),
                             ));
                         } else {
                             let deps = match value {
@@ -340,6 +341,7 @@ fn tr_el_attr(
                                 &name,
                                 expr.clone(),
                                 deps.as_ref(),
+                                Some(&builder.unmount_sig_name),
                             ));
                         }
                     }
@@ -361,8 +363,13 @@ fn tr_el_spread_attr(
     let ctx = builder.ctx;
     let expr = &mut attr.expr;
     let expr = match tr_expr(ctx, expr, &builder.scope)? {
-        TrValue::None => ctx.attrs(node_name, expr.clone(), None),
-        TrValue::Deps(deps) => ctx.attrs(node_name, expr.clone(), Some(&deps)),
+        TrValue::None => ctx.attrs(node_name, expr.clone(), None, None),
+        TrValue::Deps(deps) => ctx.attrs(
+            node_name,
+            expr.clone(),
+            Some(&deps),
+            Some(&builder.unmount_sig_name),
+        ),
     };
     builder.push_body_expr(expr);
     Ok(())
@@ -417,6 +424,7 @@ struct ElBuilder<'a> {
     ctx: &'a TrContext,
     scope: Scope<'a>,
     container_name: JsWord,
+    unmount_sig_name: JsWord,
     html: Vec<Box<Expr>>,
     body: Vec<Stmt>,
     show_body: bool,
@@ -424,12 +432,17 @@ struct ElBuilder<'a> {
 
 impl<'a> ElBuilder<'a> {
     fn new(ctx: &'a TrContext, scope: &'a Scope) -> Self {
+        const CONTAINER: &str = "container";
+        const UNMOUNT_SIGNAL: &str = "unmountSignal";
+
         let mut scope = Scope::child_of(scope);
-        let container_name = scope.insert_str_prefixed("container");
+        let container_name = scope.insert_str_prefixed(CONTAINER);
+        let unmount_sig_name = scope.insert_str_prefixed(UNMOUNT_SIGNAL);
         return Self {
             ctx,
             scope,
             container_name,
+            unmount_sig_name,
             html: Default::default(),
             body: Default::default(),
             show_body: false,
@@ -527,7 +540,10 @@ impl<'a> ElBuilder<'a> {
             {
                 if self.show_body {
                     Some(arrow_expr(
-                        Some(vec![ident_pat(&self.container_name)]),
+                        Some(vec![
+                            ident_pat(&self.container_name),
+                            ident_pat(&self.unmount_sig_name),
+                        ]),
                         block_or_expr_from_stmts(self.body),
                     ))
                 } else {

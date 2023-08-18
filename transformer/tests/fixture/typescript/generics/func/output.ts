@@ -6,8 +6,8 @@ export default function<T, U extends Array<T>>(a: T, b: U) {
     }, ({
         a,
         b
-    }, unmountSignal: AbortSignal)=>{
-        return viewmill.el("<span><!>, <!></span>", (container)=>{
+    })=>{
+        return viewmill.el("<span><!>, <!></span>", (container, unmountSignal)=>{
             const span__1 = container.firstChild;
             const anchor__1 = span__1.firstChild;
             viewmill.insert(viewmill.expr(()=>(a.getValue()), [
