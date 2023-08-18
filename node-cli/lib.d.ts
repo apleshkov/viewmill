@@ -6,7 +6,8 @@ export type ParsedFlags = {
     suffix?: string,
     verbose?: boolean,
     watch?: boolean,
-    showHelp?: boolean
+    showHelp?: boolean,
+    showVersion?: boolean
 }
 
 export type ParsedParams = {

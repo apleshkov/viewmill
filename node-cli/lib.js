@@ -38,6 +38,11 @@ module.exports = {
                 i += 1;
                 continue;
             }
+            if (args[i] === "--version") {
+                flags.showVersion = true;
+                i += 1;
+                continue;
+            }
             throw new Error(`Unknown option: '${args[i]}'`);
         }
         return {

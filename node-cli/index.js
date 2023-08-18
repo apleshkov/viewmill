@@ -148,6 +148,7 @@ Options:
   --verbose     Shows warnings and files as they are transformed
   --watch       Starts watching for changes
   --help        Prints this message
+  --version     Prints the current version
 
 Examples:
   1. Transform file:
@@ -185,10 +186,13 @@ async function main(args) {
     if (args.length > 2) {
         const {
             params,
-            flags: { showHelp, ...flags }
+            flags: { showHelp, showVersion, ...flags }
         } = parseArgs(args, 2);
         if (showHelp) {
             printHelp();
+        } else if (showVersion) {
+            const { version } = require("./package.json");
+            console.log(version);
         } else if (!params.inputPath) {
             printUsageError("No path provided");
             process.exitCode = 1;

@@ -59,6 +59,7 @@ const cases = [
     () => assertObjEq(parseArgs(["--verbose"]).flags, { verbose: true }),
     () => assertObjEq(parseArgs(["--watch"]).flags, { watch: true }),
     () => assertObjEq(parseArgs(["--help"]).flags, { showHelp: true }),
+    () => assertObjEq(parseArgs(["--version"]).flags, { showVersion: true }),
     () => {
         try {
             parseArgs(["-unknown"]);
