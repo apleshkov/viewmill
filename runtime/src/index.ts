@@ -131,13 +131,16 @@ export function param<T>(initial: T): Param<T> {
     return new Param(initial);
 }
 
+// Unmount
+
+export type Unmounter = (removing: boolean) => void;
+
 // Insert
 
-export type Remover = () => void;
-
 export class Insertion {
-    constructor(public insert: (target: Node, anchor: Node | null) => Remover | null) {
-    }
+    constructor(
+        public insert: (target: Node, anchor: Node | null) => Unmounter | null
+    ) { }
 }
 
 export type Insertable = (
@@ -148,42 +151,55 @@ export type Insertable = (
     Iterable<Insertable>
 );
 
-export function insert(input: Insertable, target: Node, anchor: Node | null = null): Remover | null {
+export function insert(input: Insertable, target: Node, anchor: Node | null = null): Unmounter | null {
     if (input === null || typeof input === "undefined") {
         return null;
     } else if (input instanceof Insertion) {
         return input.insert(target, anchor);
     } else if (input instanceof DocumentFragment) {
-        switch (input.childNodes.length) {
-            case 0:
-                return null;
-            case 1:
-                return insert(input.firstChild, target, anchor);
-            default:
-                const span = new NodeSpan(target, anchor);
-                span.append(input);
-                return () => span.remove();
-        }
+        return insertFragment(input, target, anchor);
     } else if (input instanceof Node) {
         target.insertBefore(input, anchor);
-        return () => target.removeChild(input);
+        return (removing) => {
+            if (removing) target.removeChild(input);
+        };
     } else if (typeof input === "object" && typeof input[Symbol.iterator] === "function") {
-        const list: (Remover | null)[] = [];
+        const list: (Unmounter | null)[] = [];
         for (const entry of input) {
-            const rm = insert(entry, target, anchor);
-            list.push(rm);
+            list.push(
+                insert(entry, target, anchor)
+            );
         }
-        return () => list.forEach(safeRemove);
+        return (removing) => list.forEach((u) => u?.(removing));
     } else {
         const txt = document.createTextNode(String(input));
         target.insertBefore(txt, anchor);
-        return () => target.removeChild(txt);
+        return (removing) => {
+            if (removing) target.removeChild(txt);
+        };
     }
 }
 
-export function safeRemove(rm: Remover | null) {
-    if (typeof rm === "function") {
-        rm();
+function insertFragment(input: DocumentFragment, target: Node, anchor: Node | null = null): Unmounter | null {
+    const len = input.childNodes.length;
+    if (len === 0) {
+        return null;
+    } else if (len === 1) {
+        return insert(input.firstChild, target, anchor);
+    } else {
+        const end = target.insertBefore(document.createComment("frag:end"), anchor);
+        const start = target.insertBefore(document.createComment("frag:start"), end);
+        target.insertBefore(input, end);
+        return (removing) => {
+            if (removing) {
+                const range = document.createRange();
+                range.setStartAfter(start);
+                range.setEndBefore(end);
+                range.deleteContents();
+                target.removeChild(start);
+                target.removeChild(end);
+            }
+        };
     }
 }
 
@@ -193,21 +209,21 @@ export class NodeSpan {
     private start: Node;
     private end: Node;
 
+    private unmounters: (Unmounter | null)[] = [];
+
     constructor(target: Node, anchor: Node | null = null, name: string = "span") {
         this.container = target;
         this.end = target.insertBefore(document.createComment(name + ":end"), anchor);
         this.start = target.insertBefore(document.createComment(name + ":start"), this.end);
     }
 
-    append(input: Insertable) {
-        if (input instanceof Node) {
-            this.container.insertBefore(input, this.end);
-        } else {
-            insert(input, this.container, this.end);
-        }
+    public append(input: Insertable) {
+        this.unmounters.push(
+            insert(input, this.container, this.end)
+        );
     }
 
-    *elementGenerator(): Generator<Element> {
+    public *elementGenerator(): Generator<Element> {
         let current: Node | null | undefined = this.start;
         while (current && current !== this.end) {
             if (current instanceof Element) {
@@ -217,17 +233,27 @@ export class NodeSpan {
         }
     }
 
-    clear() {
+    private unmountContents() {
+        this.unmounters.forEach((u) => u?.(false));
+        this.unmounters = [];
+    }
+
+    public clear() {
+        this.unmountContents();
         const range = document.createRange();
         range.setStartAfter(this.start);
         range.setEndBefore(this.end);
         range.deleteContents();
     }
 
-    remove() {
-        this.clear();
-        this.container.removeChild(this.start);
-        this.container.removeChild(this.end);
+    public unmount(removing: boolean) {
+        if (removing) {
+            this.clear();
+            this.container.removeChild(this.start);
+            this.container.removeChild(this.end);
+        } else {
+            this.unmountContents();
+        }
     }
 }
 
@@ -243,14 +269,12 @@ export function list<T extends Iterable<Insertable>>(
         span.append(input());
         if (deps) {
             const update = () => {
-                const frag = document.createDocumentFragment();
-                insert(input(), frag, null);
                 span.clear();
-                span.append(frag);
+                span.append(input());
             };
             listenDeps(deps, update, signal);
         }
-        return () => span.remove();
+        return (removing) => span.unmount(removing);
     });
 }
 
@@ -263,14 +287,14 @@ export function cond(
 ): Insertable {
     if (deps) {
         return new Insertion((target, anchor) => {
-            let rm: Remover | null = null;
+            let un: Unmounter | null = null;
             const update = () => {
-                safeRemove(rm);
-                rm = insert(test() ? cons() : alt(), target, anchor);
+                un?.(true);
+                un = insert(test() ? cons() : alt(), target, anchor);
             };
             listenDeps(deps, update, signal);
             update();
-            return () => safeRemove(rm);
+            return (removing) => un?.(removing);
         });
     } else {
         return test() ? cons() : alt();
@@ -283,13 +307,13 @@ export function expr(
     signal?: AbortSignal
 ): Insertable {
     return new Insertion((target, anchor) => {
-        let rm = insert(input(), target, anchor);
+        let un = insert(input(), target, anchor);
         const update = () => {
-            safeRemove(rm);
-            rm = insert(input(), target, anchor);
+            un?.(true);
+            un = insert(input(), target, anchor);
         };
         listenDeps(deps, update, signal);
-        return () => safeRemove(rm);
+        return (removing) => un?.(removing);
     });
 }
 
@@ -330,7 +354,10 @@ export function attrs(
     }
 }
 
-export function el(html: string, fn?: (container: Node) => void): Insertable {
+export function el(
+    html: string,
+    fn?: (container: Node, unmountSignal: AbortSignal) => void
+): Insertable {
     const frag = (() => {
         const t = document.createElement("template");
         t.innerHTML = html;
@@ -338,9 +365,14 @@ export function el(html: string, fn?: (container: Node) => void): Insertable {
     })();
     return new Insertion((target, anchor) => {
         if (fn) {
+            const abortController = new AbortController();
             const container = frag.cloneNode(true);
-            fn(container);
-            return insert(container, target, anchor);
+            fn(container, abortController.signal);
+            const un = insert(container, target, anchor);
+            return (removing) => {
+                abortController.abort();
+                un?.(removing);
+            };
         } else {
             return insert(frag, target, anchor);
         }
@@ -348,19 +380,15 @@ export function el(html: string, fn?: (container: Node) => void): Insertable {
 }
 
 export function cmp<I extends Insertable, P>(
-    create: (
-        props: P,
-        opts: { unmountSignal: AbortSignal }
-    ) => I,
-    props: P,
-    unmountSignal: AbortSignal
+    create: (props: P) => I,
+    props: P
 ): Insertable {
-    return create(props, { unmountSignal });
+    return create(props);
 }
 
 export type View<M extends object = {}> = {
     model: M;
-    insert(target: Node, anchor?: Node | null): InsertedView;
+    insert(target: Element, anchor?: Node | null): InsertedView;
 };
 
 export type InsertedView = {
@@ -373,7 +401,7 @@ export type InsertedView = {
 
 export function view<M extends object>(
     model: M,
-    insertable: (model: M, unmountSignal: AbortSignal) => Insertable
+    insertable: (model: M) => Insertable
 ): View<M> {
     return {
         model,
@@ -381,7 +409,7 @@ export function view<M extends object>(
             const abortController = new AbortController();
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");
-            span.append(insertable(model, unmountSignal));
+            span.append(insertable(model));
             return {
                 unmountSignal,
                 querySelector(selectors) {
@@ -408,10 +436,11 @@ export function view<M extends object>(
                 },
                 remove() {
                     abortController.abort();
-                    span.remove();
+                    span.unmount(true);
                 },
                 unmount() {
                     abortController.abort();
+                    span.unmount(false);
                 }
             };
         }

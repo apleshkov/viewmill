@@ -143,26 +143,30 @@ test("insert", () => {
     expect(viewmill.insert(null, target, null)).toBeNull();
     expect(viewmill.insert(undefined, target, null)).toBeNull();
 
-    let remove = viewmill.insert(0, target, null);
+    let unmount = viewmill.insert(0, target, null);
     let cursor = target.lastChild;
     expect(cursor.nodeType).toBe(Node.TEXT_NODE);
     expect(cursor.data).toBe("0");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert("foobar", target, null);
+    unmount = viewmill.insert("foobar", target, null);
     cursor = target.lastChild;
     expect(cursor.nodeType).toBe(Node.TEXT_NODE);
     expect(cursor.data).toBe("foobar");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         new viewmill.Insertion((target, anchor) => {
             const el = document.createElement("span");
             el.textContent = "insertion";
             target.insertBefore(el, anchor);
-            return () => el.remove();
+            return (removing) => {
+                if (removing) {
+                    el.remove();
+                }
+            };
         }),
         target,
         null
@@ -171,12 +175,12 @@ test("insert", () => {
     expect(cursor.nodeType).toBe(Node.ELEMENT_NODE);
     expect(cursor.tagName).toBe("SPAN");
     expect(cursor.textContent).toBe("insertion");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
     expect(viewmill.insert(document.createDocumentFragment(), target, null)).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         (() => {
             const frag = document.createDocumentFragment();
             const p = document.createElement("p");
@@ -191,10 +195,10 @@ test("insert", () => {
     expect(cursor.nodeType).toBe(Node.ELEMENT_NODE);
     expect(cursor.tagName).toBe("P");
     expect(cursor.textContent).toBe("single child");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         (() => {
             const tpl = document.createElement("template");
             tpl.innerHTML = "<br/><span>1</span>text&nbsp;";
@@ -209,10 +213,10 @@ test("insert", () => {
     expect(cursor.tagName).toBe("SPAN");
     cursor = cursor.nextSibling;
     expect(cursor.data).toBe("text\u{A0}");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         (() => {
             const p = document.createElement("p");
             p.textContent = "element";
@@ -225,10 +229,10 @@ test("insert", () => {
     expect(cursor.nodeType).toBe(Node.ELEMENT_NODE);
     expect(cursor.tagName).toBe("P");
     expect(cursor.textContent).toBe("element");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         document.createTextNode("text"),
         target,
         null
@@ -236,10 +240,10 @@ test("insert", () => {
     cursor = target.lastChild;
     expect(cursor.nodeType).toBe(Node.TEXT_NODE);
     expect(cursor.data).toBe("text");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         [
             "text",
             document.createElement("br"),
@@ -255,10 +259,10 @@ test("insert", () => {
     expect(cursor.tagName).toBe("BR");
     cursor = cursor.nextSibling;
     expect(cursor.data).toBe("123");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         new Map([[
             "a",
             new Set([
@@ -277,7 +281,7 @@ test("insert", () => {
     cursor = target.firstChild;
     expect(cursor.tagName).toBe("H1");
     expect(cursor.nextSibling).toBeNull();
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 });
 
@@ -288,18 +292,18 @@ test("insert", () => {
 test("list", () => {
     const target = document.createElement("div");
 
-    let remove = viewmill.insert(
+    let unmount = viewmill.insert(
         viewmill.list(() => ["text"]),
         target,
         null
     );
-    let cursor = target.firstChild.nextSibling; // skipping a NodeSpan anchor
+    let cursor = target.firstChild.nextSibling; // skipping the NodeSpan's range
     expect(cursor.data).toBe("text");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
     const a = viewmill.param([1, 2, 3]);
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         viewmill.list(
             () => a.getValue().map((v) => {
                 const el = document.createElement("p");
@@ -327,7 +331,7 @@ test("list", () => {
     cursor = cursor.nextSibling;
     expect(cursor.tagName).toBe("P");
     expect(cursor.textContent).toBe("5");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 });
 
@@ -338,17 +342,17 @@ test("list", () => {
 test("cond", () => {
     const target = document.createElement("div");
 
-    let remove = viewmill.insert(
+    let unmount = viewmill.insert(
         viewmill.cond(() => true, () => 1, () => 2),
         target,
         null
     );
     expect(target.firstChild.data).toBe("1");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
     const a = viewmill.param(false);
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         viewmill.cond(() => a.getValue(), () => 1, () => 2, [a]),
         target,
         null
@@ -356,7 +360,7 @@ test("cond", () => {
     expect(target.firstChild.data).toBe("2");
     a.setValue(true);
     expect(target.firstChild.data).toBe("1");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 });
 
@@ -367,17 +371,17 @@ test("cond", () => {
 test("expr", () => {
     const target = document.createElement("div");
 
-    let remove = viewmill.insert(
+    let unmount = viewmill.insert(
         viewmill.expr(() => 1),
         target,
         null
     );
     expect(target.firstChild.data).toBe("1");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
     const a = viewmill.param(2);
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         viewmill.expr(() => a.getValue(), [a]),
         target,
         null
@@ -385,7 +389,7 @@ test("expr", () => {
     expect(target.firstChild.data).toBe("2");
     a.setValue(1);
     expect(target.firstChild.data).toBe("1");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 });
 
@@ -427,7 +431,7 @@ test("attr + attrs", () => {
 test("el", () => {
     const target = document.createElement("div");
 
-    let remove = viewmill.insert(
+    let unmount = viewmill.insert(
         viewmill.el("<br /><p>text</p>"),
         target,
         null
@@ -437,10 +441,10 @@ test("el", () => {
     cursor = cursor.nextSibling;
     expect(cursor.tagName).toBe("P");
     expect(cursor.textContent).toBe("text");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 
-    remove = viewmill.insert(
+    unmount = viewmill.insert(
         viewmill.el("<div>Value: <!>!</div>", (container) => {
             const div = container.firstChild;
             const anchor = div.firstChild.nextSibling;
@@ -452,7 +456,7 @@ test("el", () => {
     cursor = target.firstElementChild;
     expect(cursor.tagName).toBe("DIV");
     expect(cursor.textContent).toBe("Value: 123!");
-    remove();
+    unmount(true);
     expect(target.lastChild).toBeNull();
 });
 
@@ -499,22 +503,35 @@ test("view", () => {
 test("cmp", () => {
     const target = document.createElement("div");
 
-    const Foo = ({ bar }, { unmountSignal }) => (
-        viewmill.el("<div>State: <!></div>", (container) => {
-            const div = container.firstChild;
-            viewmill.attr(div, "bar", () => bar.getValue(), [bar]);
-            const anchor = div.firstChild.nextSibling;
-            const txt = document.createTextNode("mounted");
-            div.insertBefore(txt, anchor);
-            viewmill.listen(unmountSignal, "abort", () => {
-                txt.data = "unmounted!";
-            });
-        })
-    );
+    const Foo = ({ bar }) => {
+        return new viewmill.Insertion(
+            (target, anchor) => {
+                const abortController = new AbortController();
+                const un = viewmill.insert(
+                    viewmill.el("<div>State: <!></div>", (container) => {
+                        const div = container.firstChild;
+                        viewmill.attr(div, "bar", () => bar.getValue(), [bar]);
+                        const anchor = div.firstChild.nextSibling;
+                        const txt = document.createTextNode("mounted");
+                        div.insertBefore(txt, anchor);
+                        viewmill.listen(abortController.signal, "abort", () => {
+                            txt.data = "unmounted!";
+                        });
+                    }),
+                    target,
+                    anchor
+                );
+                return (removing) => {
+                    abortController.abort();
+                    un?.(removing);
+                };
+            }
+        )
+    };
 
     const bar = viewmill.param();
-    const view = viewmill.view({ bar }, (_, unmountSignal) => (
-        viewmill.cmp(Foo, { bar }, unmountSignal)
+    const view = viewmill.view({ bar }, (_) => (
+        viewmill.cmp(Foo, { bar })
     ));
     const { remove, querySelector } = view.insert(target, null);
 
