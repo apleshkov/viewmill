@@ -12,21 +12,30 @@ use super::{
 
 pub struct TrContext {
     lib: NameAndExpr,
+    unmount_sig: NameAndExpr,
 }
 
 impl TrContext {
     pub fn new(src: &str, scope: &mut Scope) -> Self {
+        const LIB: &str = "viewmill";
+        const UNMOUNT_SIG: &str = "unmountSignal";
+
         let lib_name = glob::uname(LIB, src);
         scope.insert(&lib_name);
+        let unmount_sig = glob::uname(UNMOUNT_SIG, src);
+        scope.insert(&unmount_sig);
         Self {
             lib: NameAndExpr::ident(lib_name),
+            unmount_sig: NameAndExpr::ident(unmount_sig),
         }
     }
 }
 
 impl TrContext {
     pub fn import_decl(&self) -> ImportDecl {
-        let src = Str::from("viewmill-runtime");
+        const RUNTIME: &str = "viewmill-runtime";
+
+        let src = Str::from(RUNTIME);
         let s = ImportSpecifier::Namespace(ImportStarAsSpecifier {
             span: DUMMY_SP,
             local: ident(&self.lib.name),
@@ -48,6 +57,7 @@ impl TrContext {
         deps: &Vec<JsWord>,
         destruct: Option<&DestructArg>,
     ) -> Box<Expr> {
+        static_jsword!(LIVE, "live");
         obj_method_call(
             self.lib.expr(),
             &LIVE,
@@ -56,12 +66,16 @@ impl TrContext {
                 args.add_expr(deps_expr(deps));
                 if let Some(d) = destruct {
                     args.add_expr(d.to_expr());
+                } else {
+                    args.add_expr(null_expr());
                 }
+                args.add_expr(self.unmount_sig.expr());
             })),
         )
     }
 
     pub fn param(&self, initial: Box<Expr>) -> Box<Expr> {
+        static_jsword!(PARAM, "param");
         obj_method_call(
             self.lib.expr(),
             &PARAM,
@@ -70,6 +84,7 @@ impl TrContext {
     }
 
     pub fn condition(&self, expr: &CondExpr, deps: &Vec<JsWord>) -> Box<Expr> {
+        static_jsword!(COND, "cond");
         obj_method_call(
             self.lib.expr(),
             &COND,
@@ -83,6 +98,7 @@ impl TrContext {
     }
 
     pub fn expression(&self, expr: Box<Expr>, deps: &Vec<JsWord>) -> Box<Expr> {
+        static_jsword!(EXPR, "expr");
         obj_method_call(
             self.lib.expr(),
             &EXPR,
@@ -94,6 +110,7 @@ impl TrContext {
     }
 
     pub fn list(&self, expr: Box<Expr>, deps: Option<&Vec<JsWord>>) -> Box<Expr> {
+        static_jsword!(LIST, "list");
         obj_method_call(
             self.lib.expr(),
             &LIST,
@@ -114,6 +131,7 @@ impl TrContext {
         deps: Option<&Vec<JsWord>>,
         sig: Option<&JsWord>,
     ) -> Box<Expr> {
+        static_jsword!(ATTR, "attr");
         obj_method_call(
             self.lib.expr(),
             &ATTR,
@@ -140,6 +158,7 @@ impl TrContext {
         deps: Option<&Vec<JsWord>>,
         sig: Option<&JsWord>,
     ) -> Box<Expr> {
+        static_jsword!(ATTRS, "attrs");
         obj_method_call(
             self.lib.expr(),
             &ATTRS,
@@ -159,6 +178,7 @@ impl TrContext {
     }
 
     pub fn element(&self, html: Option<Box<Expr>>, func: Option<Box<Expr>>) -> Box<Expr> {
+        static_jsword!(EL, "el");
         obj_method_call(
             self.lib.expr(),
             &EL,
@@ -176,6 +196,7 @@ impl TrContext {
     }
 
     pub fn insert(&self, expr: Box<Expr>, target_name: &JsWord, anchor_name: &JsWord) -> Box<Expr> {
+        static_jsword!(INSERT, "insert");
         obj_method_call(
             self.lib.expr(),
             &INSERT,
@@ -183,6 +204,17 @@ impl TrContext {
                 args.add_expr(expr)
                     .add_expr(ident_expr(&target_name.clone()))
                     .add_expr(ident_expr(&anchor_name.clone()));
+            })),
+        )
+    }
+
+    pub fn unmount_on(&self, sig: &JsWord, expr: Box<Expr>) -> Box<Expr> {
+        static_jsword!(UNMOUNT_ON, "unmountOn");
+        obj_method_call(
+            self.lib.expr(),
+            &UNMOUNT_ON,
+            Some(ArgsBuilder::build_using(|args| {
+                args.add_expr(ident_expr(sig)).add_expr(expr);
             })),
         )
     }
@@ -195,6 +227,7 @@ impl TrContext {
         deps: Option<&Vec<JsWord>>,
         sig: Option<&JsWord>,
     ) -> Box<Expr> {
+        static_jsword!(LISTEN, "listen");
         obj_method_call(
             self.lib.expr(),
             &LISTEN,
@@ -213,6 +246,7 @@ impl TrContext {
     }
 
     pub fn cmp(&self, name: Box<Expr>, props: Box<Expr>) -> Box<Expr> {
+        static_jsword!(CMP, "cmp");
         obj_method_call(
             self.lib.expr(),
             &CMP,
@@ -224,6 +258,7 @@ impl TrContext {
     }
 
     pub fn view(&self, params: Vec<Ident>, body: Box<BlockStmtOrExpr>) -> Box<Expr> {
+        static_jsword!(VIEW, "view");
         obj_method_call(
             self.lib.expr(),
             &VIEW,
@@ -239,13 +274,16 @@ impl TrContext {
                     obj.build_expr()
                 })
                 .add_expr(arrow_expr(
-                    Some(vec![{
-                        let mut obj = ObjLitBuilder::default();
-                        for p in params.iter() {
-                            obj.add_shorthand(ident(&p.sym));
-                        }
-                        Pat::from(obj.build_expr())
-                    }]),
+                    Some(vec![
+                        {
+                            let mut obj = ObjLitBuilder::default();
+                            for p in params.iter() {
+                                obj.add_shorthand(ident(&p.sym));
+                            }
+                            Pat::from(obj.build_expr())
+                        },
+                        Pat::from(self.unmount_sig.expr()),
+                    ]),
                     body,
                 ));
             })),
@@ -270,18 +308,3 @@ impl NameAndExpr {
         self.expr.clone()
     }
 }
-
-static LIB: &str = "viewmill";
-
-static_jsword!(LIVE, "live");
-static_jsword!(PARAM, "param");
-static_jsword!(INSERT, "insert");
-static_jsword!(COND, "cond");
-static_jsword!(LIST, "list");
-static_jsword!(EL, "el");
-static_jsword!(ATTR, "attr");
-static_jsword!(ATTRS, "attrs");
-static_jsword!(EXPR, "expr");
-static_jsword!(LISTEN, "listen");
-static_jsword!(VIEW, "view");
-static_jsword!(CMP, "cmp");

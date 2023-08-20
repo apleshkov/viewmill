@@ -6,13 +6,13 @@ export default function(a, b) {
     }, ({
         a,
         b
-    })=>([
-            viewmill.el("<h1>a = <!></h1>", (container, unmountSignal)=>{
+    }, unmountSignal)=>([
+            viewmill.el("<h1>a = <!></h1>", (container, unmountSignal1)=>{
                 const h1__1 = container.firstChild;
                 const anchor__1 = h1__1.firstChild.nextSibling;
-                viewmill.insert(viewmill.expr(()=>(a.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(a.getValue()), [
                     a
-                ]), h1__1, anchor__1);
+                ]), h1__1, anchor__1));
             }),
             viewmill.el("<p>Foo</p>"),
             [

@@ -5,6 +5,9 @@ function foo(x) {
 export default (a, b) => (
     <>
         <span str_attr="1"></span>
+        <button 
+            onclick={() => console.log(a + b)}
+        >button</button>
         <span {...{ a2: 2, a3: b }}></span>
         <span num_attr={1} bool_attr={true}></span>
         <img src={`/path/to/img/${a}`} alt="Static title" title={[a, b].join(", ")} />

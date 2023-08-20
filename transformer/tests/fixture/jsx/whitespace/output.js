@@ -9,53 +9,53 @@ export default function(a, b) {
     }, ({
         a,
         b
-    })=>{
+    }, unmountSignal)=>{
         return [
             123,
-            viewmill.el("<p> <!> <!>  <!> <!>  <!>  </p>", (container, unmountSignal)=>{
+            viewmill.el("<p> <!> <!>  <!> <!>  <!>  </p>", (container, unmountSignal1)=>{
                 const p__1 = container.firstChild;
                 const anchor__1 = p__1.firstChild.nextSibling;
-                viewmill.insert(viewmill.expr(()=>(a.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(a.getValue()), [
                     a
-                ]), p__1, anchor__1);
+                ]), p__1, anchor__1));
                 const anchor__2 = anchor__1.nextSibling.nextSibling;
-                viewmill.insert(viewmill.expr(()=>(b.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(b.getValue()), [
                     b
-                ]), p__1, anchor__2);
+                ]), p__1, anchor__2));
                 const anchor__3 = anchor__2.nextSibling.nextSibling;
-                viewmill.insert(viewmill.expr(()=>(a.getValue() + b.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(a.getValue() + b.getValue()), [
                     a,
                     b
-                ]), p__1, anchor__3);
+                ]), p__1, anchor__3));
                 const anchor__4 = anchor__3.nextSibling.nextSibling;
-                viewmill.insert(1, p__1, anchor__4);
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(1, p__1, anchor__4));
                 const anchor__5 = anchor__4.nextSibling.nextSibling;
-                viewmill.insert(2, p__1, anchor__5);
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(2, p__1, anchor__5));
             }),
-            viewmill.el("<p>a is <span><!>  </span>   </p>", (container, unmountSignal)=>{
+            viewmill.el("<p>a is <span><!>  </span>   </p>", (container, unmountSignal1)=>{
                 const p__1 = container.firstChild;
                 const span__1 = p__1.firstChild.nextSibling;
                 const anchor__1 = span__1.firstChild;
-                viewmill.insert(1, span__1, anchor__1);
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(1, span__1, anchor__1));
             }),
-            viewmill.el("<div>&nbsp;<!>&nbsp; &nbsp;<span>&nbsp;text</span><p>text&nbsp;</p><!>&nbsp;</div>", (container, unmountSignal)=>{
+            viewmill.el("<div>&nbsp;<!>&nbsp; &nbsp;<span>&nbsp;text</span><p>text&nbsp;</p><!>&nbsp;</div>", (container, unmountSignal1)=>{
                 const div__1 = container.firstChild;
                 const anchor__1 = div__1.firstChild.nextSibling;
-                viewmill.insert(viewmill.expr(()=>(a.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(a.getValue()), [
                     a
-                ]), div__1, anchor__1);
+                ]), div__1, anchor__1));
                 const span__1 = anchor__1.nextSibling.nextSibling;
                 const p__1 = span__1.nextSibling;
                 const anchor__2 = p__1.nextSibling;
-                viewmill.insert([
-                    viewmill.el("<p><!></p>", (container1, unmountSignal1)=>{
+                viewmill.unmountOn(unmountSignal1, viewmill.insert([
+                    viewmill.el("<p><!></p>", (container1, unmountSignal2)=>{
                         const p__2 = container1.firstChild;
                         const anchor__2 = p__2.firstChild;
-                        viewmill.insert(viewmill.expr(()=>(a.getValue()), [
+                        viewmill.unmountOn(unmountSignal2, viewmill.insert(viewmill.expr(()=>(a.getValue()), [
                             a
-                        ]), p__2, anchor__2);
+                        ]), p__2, anchor__2));
                     })
-                ], div__1, anchor__2);
+                ], div__1, anchor__2));
             }),
             [
                 "&nbsp;",

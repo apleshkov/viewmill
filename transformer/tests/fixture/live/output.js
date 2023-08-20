@@ -6,11 +6,11 @@ export default function(a, b) {
     }, ({
         a,
         b
-    })=>{
+    }, unmountSignal)=>{
         const c = viewmill.live(()=>(a.getValue() + b.getValue()), [
             a,
             b
-        ]);
+        ], null, unmountSignal);
         const [d1, d2, d3] = viewmill.live(()=>([
                 a.getValue(),
                 b.getValue(),
@@ -26,7 +26,7 @@ export default function(a, b) {
                     d2,
                     d3
                 ])
-        ]);
+        ], unmountSignal);
         const [e1, e2, e3, e4] = viewmill.live(()=>({
                 ...{
                     a: a.getValue(),
@@ -45,7 +45,7 @@ export default function(a, b) {
                     e3,
                     e4
                 ])
-        ]);
+        ], unmountSignal);
         return {
             c: c.getValue(),
             d: [

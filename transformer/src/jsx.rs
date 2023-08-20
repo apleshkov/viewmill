@@ -205,6 +205,7 @@ fn tr_cmp(
     name: Box<Expr>,
     scope: &Scope,
 ) -> Result<Box<Expr>, SpanError> {
+    static_jsword!(CHILDREN, "children");
     let mut props = ObjLitBuilder::default();
     for attr in el.opening.attrs.iter_mut() {
         match attr {
@@ -247,7 +248,7 @@ fn tr_cmp(
             children.push(Some(ExprOrSpread::from(expr)));
         }
     }
-    if !children.is_empty() {
+    if children.len() > 1 {
         props.add_key(
             PropName::Ident(ident(&CHILDREN)),
             Box::from(ArrayLit {
@@ -255,6 +256,8 @@ fn tr_cmp(
                 elems: children,
             }),
         );
+    } else if let Some(Some(first)) = children.pop() {
+        props.add_key(PropName::Ident(ident(&CHILDREN)), Box::from(first.expr));
     }
     Ok(ctx.cmp(name, props.build_expr()))
 }
@@ -296,6 +299,7 @@ fn tr_el_attr(
     builder: &mut ElBuilder,
     node_name: &JsWord,
 ) -> Result<(), SpanError> {
+    static ON: &str = "on";
     let ctx = builder.ctx;
     let (name, event_name) = match &attr.name {
         JSXAttrName::Ident(ident) => {
@@ -498,10 +502,9 @@ impl<'a> ElBuilder<'a> {
         self.show_body = true;
         self.push_html_str("<!>");
         let anchor = self.push_node_path("anchor", node_path);
-        self.body.push(stmt_from_expr(self.ctx.insert(
-            expr,
-            container_name,
-            &anchor.root(),
+        self.body.push(stmt_from_expr(self.ctx.unmount_on(
+            &self.unmount_sig_name,
+            self.ctx.insert(expr, container_name, &anchor.root()),
         )));
         anchor
     }
@@ -584,10 +587,6 @@ impl From<&JSXElementName> for ElName {
         }
     }
 }
-
-static ON: &str = "on";
-
-static_jsword!(CHILDREN, "children");
 
 #[cfg(test)]
 mod tests {

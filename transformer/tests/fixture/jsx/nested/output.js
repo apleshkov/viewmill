@@ -6,19 +6,19 @@ export default function(a, b) {
     }, ({
         a,
         b
-    })=>{
+    }, unmountSignal)=>{
         const c = viewmill.live(()=>(a.getValue() + b.getValue()), [
             a,
             b
-        ]);
+        ], null, unmountSignal);
         function f1(x) {
-            return viewmill.el("<span><!></span>", (container, unmountSignal)=>{
+            return viewmill.el("<span><!></span>", (container, unmountSignal1)=>{
                 const span__1 = container.firstChild;
                 const anchor__1 = span__1.firstChild;
-                viewmill.insert(viewmill.expr(()=>(a.getValue() + x + c.getValue()), [
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(a.getValue() + x + c.getValue()), [
                     a,
                     c
-                ]), span__1, anchor__1);
+                ]), span__1, anchor__1));
             });
         }
         const f2 = (x)=>{
@@ -26,10 +26,10 @@ export default function(a, b) {
                 x
             ];
         };
-        const f3 = (x)=>viewmill.el("<div><!></div>", (container, unmountSignal)=>{
+        const f3 = (x)=>viewmill.el("<div><!></div>", (container, unmountSignal1)=>{
                 const div__1 = container.firstChild;
                 const anchor__1 = div__1.firstChild;
-                viewmill.insert(x, div__1, anchor__1);
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(x, div__1, anchor__1));
             });
         class C1 {
             #foo = a.getValue();
@@ -50,7 +50,7 @@ export default function(a, b) {
             }), [
             a,
             c
-        ]);
+        ], null, unmountSignal);
         const loading = false;
         return [
             f1(123),
