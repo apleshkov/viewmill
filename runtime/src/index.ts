@@ -5,7 +5,7 @@ export function listen(
     deps?: Live<unknown>[] | null,
     signal?: AbortSignal,
 ) {
-    if (deps) {
+    if (deps && deps.length > 0) {
         let currentListener: EventListener | null = null;
         const update = () => {
             if (currentListener) {
@@ -55,7 +55,7 @@ function listenDeps(
     cb: (v: ChangeEventValue<unknown>) => void,
     signal?: AbortSignal
 ) {
-    if (deps) {
+    if (deps && deps.length > 0) {
         deps.forEach((d) => {
             d.listen(cb, signal);
         });
@@ -83,7 +83,7 @@ class ReadonlyLive<T> extends Live<T> {
 
 export function live<T>(
     readValue: () => T,
-    deps: Live<unknown>[] | null,
+    deps?: Live<unknown>[] | null,
     destruct?: [number, (value: T) => unknown[]] | null,
     signal?: AbortSignal,
 ): Live<T> | Live<unknown>[] {
@@ -135,6 +135,16 @@ export function param<T>(initial: T): Param<T> {
 
 export type Unmounter = (removing: boolean) => void;
 
+export function unmountOn(signal: AbortSignal, unmounter: Unmounter | null) {
+    if (unmounter) {
+        if (signal.aborted) {
+            unmounter(false);
+        } else {
+            signal.addEventListener("abort", () => unmounter(false));
+        }
+    }
+}
+
 // Insert
 
 export class Insertion {
@@ -152,6 +162,9 @@ export type Insertable = (
 );
 
 export function insert(input: Insertable, target: Node, anchor: Node | null = null): Unmounter | null {
+    if (anchor && anchor.parentNode !== target) {
+        return null;
+    }
     if (input === null || typeof input === "undefined") {
         return null;
     } else if (input instanceof Insertion) {
@@ -257,24 +270,27 @@ export class NodeSpan {
     }
 }
 
-//
-
 export function list<T extends Iterable<Insertable>>(
     input: () => T,
-    deps?: Live<unknown>[],
-    signal?: AbortSignal
+    deps?: Live<unknown>[]
 ): Insertable {
     return new Insertion((target, anchor) => {
+        let abortController: AbortController | undefined;
         const span = new NodeSpan(target, anchor);
         span.append(input());
-        if (deps) {
+        if (deps && deps.length > 0) {
             const update = () => {
                 span.clear();
                 span.append(input());
             };
-            listenDeps(deps, update, signal);
+            const ac = new AbortController();
+            listenDeps(deps, update, ac.signal);
+            abortController = ac;
         }
-        return (removing) => span.unmount(removing);
+        return (removing) => {
+            abortController?.abort();
+            span.unmount(removing);
+        };
     });
 }
 
@@ -282,19 +298,29 @@ export function cond(
     test: () => unknown,
     cons: () => Insertable,
     alt: () => Insertable,
-    deps?: Live<unknown>[],
-    signal?: AbortSignal
+    deps?: Live<unknown>[]
 ): Insertable {
-    if (deps) {
+    if (deps && deps.length > 0) {
         return new Insertion((target, anchor) => {
+            const a = target.insertBefore(
+                document.createComment("cond"),
+                anchor
+            );
+            const abortController = new AbortController();
             let un: Unmounter | null = null;
             const update = () => {
                 un?.(true);
-                un = insert(test() ? cons() : alt(), target, anchor);
+                un = insert(test() ? cons() : alt(), target, a);
             };
-            listenDeps(deps, update, signal);
+            listenDeps(deps, update, abortController.signal);
             update();
-            return (removing) => un?.(removing);
+            return (removing) => {
+                abortController.abort();
+                un?.(removing);
+                if (removing) {
+                    target.removeChild(a);
+                }
+            };
         });
     } else {
         return test() ? cons() : alt();
@@ -303,18 +329,33 @@ export function cond(
 
 export function expr(
     input: () => Insertable,
-    deps?: Live<unknown>[],
-    signal?: AbortSignal
+    deps?: Live<unknown>[]
 ): Insertable {
-    return new Insertion((target, anchor) => {
-        let un = insert(input(), target, anchor);
-        const update = () => {
-            un?.(true);
-            un = insert(input(), target, anchor);
-        };
-        listenDeps(deps, update, signal);
-        return (removing) => un?.(removing);
-    });
+    if (deps && deps.length > 0) {
+        return new Insertion((target, anchor) => {
+            const a = target.insertBefore(
+                document.createComment("expr"),
+                anchor
+            );
+            const abortController = new AbortController();
+            let un: Unmounter | null = null;
+            const update = () => {
+                un?.(true);
+                un = insert(input(), target, a);
+            };
+            listenDeps(deps, update, abortController.signal);
+            update();
+            return (removing) => {
+                abortController.abort();
+                un?.(removing);
+                if (removing) {
+                    target.removeChild(a);
+                }
+            };
+        });
+    } else {
+        return input();
+    }
 }
 
 export function attr(
@@ -382,7 +423,7 @@ export function el(
 export function cmp<I extends Insertable, P>(
     create: (props: P) => I,
     props: P
-): Insertable {
+): I {
     return create(props);
 }
 
@@ -401,7 +442,7 @@ export type InsertedView = {
 
 export function view<M extends object>(
     model: M,
-    insertable: (model: M) => Insertable
+    insertable: (model: M, unmountSignal: AbortSignal) => Insertable
 ): View<M> {
     return {
         model,
@@ -409,7 +450,7 @@ export function view<M extends object>(
             const abortController = new AbortController();
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");
-            span.append(insertable(model));
+            span.append(insertable(model, unmountSignal));
             return {
                 unmountSignal,
                 querySelector(selectors) {
