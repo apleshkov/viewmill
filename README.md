@@ -74,23 +74,22 @@ It'll create a file `src/counter-view.ts`:
 
 import * as viewmill from "viewmill-runtime";
 
-export default function (count: number) {
-    return viewmill.view(
-        { count: viewmill.param(count) },
-        ({ count }, unmountSignal: AbortSignal) => {
-            return [
-                viewmill.el("<h1>Counter</h1>"),
-                viewmill.el("<p>The current value is <strong><!></strong>!</p>", (container) => {
-                    const p__1 = container.firstChild;
-                    const strong__1 = p__1.firstChild.nextSibling;
-                    const anchor__1 = strong__1.firstChild;
-                    viewmill.insert(viewmill.expr(() => (count.getValue()), [
-                        count
-                    ]), strong__1, anchor__1);
-                })
-            ];
-        }
-    );
+export default function(count: number) {
+    return viewmill.view({
+        count: viewmill.param(count)
+    }, ({ count }, unmountSignal) => {
+        return [
+            viewmill.el("<h1>Counter</h1>"),
+            viewmill.el("<p>The current value is <strong><!></strong>!</p>", (container, unmountSignal1)=>{
+                const p__1 = container.firstChild;
+                const strong__1 = p__1.firstChild.nextSibling;
+                const anchor__1 = strong__1.firstChild;
+                viewmill.unmountOn(unmountSignal1, viewmill.insert(viewmill.expr(()=>(count.getValue()), [
+                    count
+                ]), strong__1, anchor__1));
+            })
+        ];
+    });
 };
 ```
 
@@ -247,9 +246,10 @@ const {
     // which is aborted on `remove` or `unmount`, so this property is 
     // its `AbortSignal`
     unmountSignal,
-    // Removes the inserted nodes from DOM and aborts the controller
+    // Removes the inserted nodes from DOM and triggers the signal
     remove,
-    // Just aborts the controller. In case there's no need to affect DOM
+    // Unmounts the inserted nodes without the actual removing and triggers the signal.
+    // Useful if there's no need to affect DOM.
     unmount
 } = view.insert(...);
 ```
@@ -341,15 +341,12 @@ export * from "./my-counter";
 
 ## Custom Components
 
-`viewmill` uses the very classic approach to custom components. They're just functions with the `props` argument, which return an `Insertable`.
-There's also an optional second argument with some additional context.
-
-The signature looks like this:
+Every custom component is just a function with the `props` argument, which returns an `Insertable`:
 ```ts
-function <Props extends object>(props, { unmountSignal: AbortSignal }): Insertable;
+function <Props extends object>(props: Props): Insertable;
 ```
 
-Children are available via the `children` property and it's *always* an array. Speaking of types it's an array of `Insertable`s.
+Children are available via the `children` property. The value can be an `Insertable`, an array of them or `undefined`.
 
 Let's see how we can extend things with custom components by examples. Please, note how actively the `viewmill-runtime` library is used.
 
@@ -360,44 +357,59 @@ This component helps us to code condtions with JSX.
 ```ts
 // src/if.ts
 
-import { Insertable, Insertion, Live, insert } from "viewmill-runtime";
+import { Insertable, Insertion, Live, Unmounter, insert } from "viewmill-runtime";
 
 // Show children when the `test` is truthy
 export default (
     { test, children }: {
         test: unknown | Live<unknown>,
-        children: Insertable[]
+        children?: Insertable | Insertable[]
     }
 ): Insertable => {
     // `Live` is a non-static value
     if (test instanceof Live) {
         // This wrapper is for working with DOM
         return new Insertion((target, anchor) => {
+            // An anchor to avoid jumping around when updating, cause
+            // the content could be re-inserted at the wrong place
+            const a = target.insertBefore(
+                document.createComment("if"),
+                anchor
+            );
+            // This controller helps to stop listening to the
+            // `test` updates on unmount
+            const abortController = new AbortController();
             // This is needed to remove the inserted `children`
-            let rm: (() => void) | null = null;
+            let un: Unmounter | null = null;
             // Introducing a handler here to not repeat ourselves
             const update = () => {
-                if (test.getValue()) {
-                    rm = insert(children, target, anchor);
-                } else if (rm) {
-                    rm();
+                if (test.getValue() && !un) {
+                    un = insert(children, target, a);
+                } else {
+                    un?.(true);
+                    un = null;
                 }
             };
-            // Listening the `Live`
-            test.listen(update);
+            // Listening to the `test` updates
+            test.listen(update, abortController.signal);
             // Check the `test` value on a first insertion
             update();
-            // The `Insertion` callback needs to return a remover
+            // The `Insertion` callback needs to return an unmounter
             // to clean up its things if necessary
-            return () => rm?.();
+            return (removing) => {
+                abortController.abort();
+                un?.(removing);
+                if (removing) {
+                    target.removeChild(a);
+                }
+            };
         });
     } else if (test) {
         // The `test` value is static, so let's just
         // return `children` if it's truthy
         return children;
     }
-    // `Insertable` could be undefined, so don't have to return
-    // anything if `test` is falsy
+    // `Insertable` could be undefined, so no need to return anything here
 };
 ```
 
@@ -425,32 +437,46 @@ Iterating over an array using a function, which is provided as a child.
 ```ts
 // src/for.ts
 
-import { Insertable, Insertion, Live, insert } from "viewmill-runtime";
+import { Insertable, Insertion, Live, Unmounter, insert } from "viewmill-runtime";
 
 export default <E extends Insertable>(
-    { items, children: [using] }: {
+    { items, using }: {
         items: E[] | Live<E[]>,
-        children: [(item: E, index: number) => Insertable]
+        using: (item: E, index: number) => Insertable
     }
 ): Insertable => {
     if (items instanceof Live) {
         return new Insertion((target, anchor) => {
-            // Let's introduce a container to simplify the implementation
-            // for the sake of demonstration
-            const container = document.createElement("div");
+            // The content is being removed on every update here too,
+            // so we need this anchor to stabilize the placement
+            const a = target.insertBefore(
+                document.createComment("for"),
+                anchor
+            );
+            let unmounters: (Unmounter | null)[] = [];
+            const unmount = (removing: boolean) => {
+                unmounters.forEach((u) => u?.(removing));
+                unmounters = [];
+            };
             const update = () => {
-                container.replaceChildren();
-                items.getValue()
+                // Remove the previously inserted items if any
+                unmount(true);
+                // Insert the new ones
+                unmounters = items.getValue()
                     .map(using)
-                    .forEach((entry) => insert(entry, container));
+                    .map((entry) => insert(entry, target, a));
             };
             items.listen(update);
             update();
-            target.insertBefore(container, anchor);
-            return () => container.remove();
+            return (removing) => {
+                unmount(removing);
+                if (removing) {
+                    target.removeChild(a);
+                }
+            };
         });
     } else {
-        // just a static iterable
+        // Just a static iterable
         return items.map(using);
     }
 };
@@ -462,12 +488,16 @@ import For from "./for";
 
 export default (items: string[]) => {
     return <>
-        <For items={items}>
-            {(s, idx) => <p>#{idx}: {s}</p>}
-        </For>
-        <For items={[1, 2, 3]}>
-            {(n) => <><br />number: {n}</>}
-        </For>
+        <ul>
+            <For
+                items={items}
+                using={(s, idx) => <li>#{idx}: {s}</li>}
+            />
+        </ul>
+        <For
+            items={[1, 2, 3]}
+            using={(n) => <><br />number: {n}</>}
+        />
     </>;
 }
 ```
