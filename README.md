@@ -501,3 +501,105 @@ export default (items: string[]) => {
     </>;
 }
 ```
+
+### Extendable List & `userData`
+
+It's possible to enrich a component behaviour, using `userData` while listening to a live param.
+
+For instance let's create an extendable list, so it's possible to add items there without its full re-rendering:
+```ts
+// src/xlist.ts
+
+import { Insertable, Insertion, Live, Unmounter, insert } from "viewmill-runtime";
+
+export default function <E extends Insertable>(
+    { items, using }: {
+        items: E[] | Live<E[]>,
+        using: (item: E, index: number) => Insertable
+    }
+): Insertable {
+    if (items instanceof Live) {
+        return new Insertion((target, anchor) => {
+            // Let's use a container for the sake of demonstration
+            const container = document.createElement("div");
+            let unmounters: (Unmounter | null)[] = [];
+            const unmount = (removing: boolean) => {
+                unmounters.forEach((u) => u?.(removing));
+                unmounters = [];
+            };
+            const insertItems = (items: E[]): (Unmounter | null)[] => (
+                items
+                    .map(using)
+                    .map((entry) => insert(entry, container))
+            );
+            const update = (tail?: unknown) => {
+                if (typeof tail === "number" && tail > 0) {
+                    // Just insert the new items
+                    unmounters.push(
+                        ...insertItems(items.getValue().slice(-tail))
+                    );
+                } else {
+                    // The defalt behaviour is to replace everything
+                    unmount(true);
+                    unmounters = insertItems(items.getValue());
+                }
+            };
+            items.listen(({ userData }) => update(userData));
+            update();
+            target.insertBefore(container, anchor);
+            return (removing) => {
+                unmount(removing);
+                if (removing) {
+                    target.removeChild(container);
+                }
+            };
+        });
+    } else {
+        return items.map(using);
+    }
+};
+```
+
+Numeric list view:
+```tsx
+// src/xnumlist.tsx
+
+import ExList from "./xlist";
+
+export default (items: number[], onClick: () => void) => (
+    <>
+        <ExList
+            items={items}
+            using={(n) => <><br />{n}</>}
+        />
+        <p>
+            <button onclick={onClick}>Load next</button>
+        </p>
+    </>
+);
+```
+
+The button adds new 3 items to the list on every click:
+```ts
+// src/index.ts
+
+import ExNumList from "./xnumlist-view";
+
+const xlist = ExNumList([1, 2, 3, 4], () => {
+    const { items } = xlist.model;
+    const n = 3;
+    items.updateValue(
+        (current) => {
+            const lastItem = current[current.length - 1];
+            // Generate next items
+            const next = Array.from({ length: n }, (_, k) => lastItem + k + 1);
+            return current.concat(next);
+        },
+        // Here goes the `userData` value, so the view'll insert
+        // only the last `n` items of the updated value
+        n
+    )
+});
+
+xlist.insert(document.getElementById("app")!);
+```
