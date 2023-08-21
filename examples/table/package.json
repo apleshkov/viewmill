@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "views": "npx viewmill --verbose --suffix \"-view\" --watch src/table.jsx",
+    "views": "npx viewmill --verbose --suffix \"-view\" --watch src",
     "bundler": "npx esbuild src/index.js src/index.css --bundle --outdir=www/x --servedir=www --target=es6 --sourcemap --watch"
   },
   "devDependencies": {

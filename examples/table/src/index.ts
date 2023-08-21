@@ -2,7 +2,7 @@ import Data from "./data";
 import TableView from "./table-view";
 import * as runtime from "viewmill-runtime";
 
-const view = new TableView(
+const view = TableView(
     [
         { key: 'firstName', title: 'First', sortable: true },
         { key: 'lastName', title: 'Last', sortable: true },
@@ -17,24 +17,35 @@ const view = new TableView(
             sortable: true,
             render: ({ email }) => runtime.el(`<a href="mailto:${email}">${email}</a>`)
         }
-    ],
-    { type: "loading" }
+    ]
 );
 
 const remoteData = Data(42);
 
 function load() {
-    const { state, page, sorting } = view.model;
-    if (state.getValue()?.type !== "loading") {
-        state.setValue({ type: "loading" });
-    }
+    const {
+        loading,
+        results,
+        error,
+        total,
+        page,
+        sorting
+    } = view.model;
+    loading.setValue(true);
     const params = {
         page: page.getValue(),
         sorting: sorting.getValue()
     };
-    remoteData.fetch(params).then((data) => {
-        state.setValue({ type: "loaded", data });
-    });
+    remoteData.fetch(params)
+        .then((data) => {
+            loading.setValue(false);
+            results.setValue(data.results);
+            total.setValue(data.info.total);
+        })
+        .catch((reason) => {
+            loading.setValue(false);
+            error.setValue(reason);
+        });
 }
 
 load();
@@ -45,7 +56,7 @@ const { querySelector } = view.insert(document.getElementById("app"));
 
 querySelector("thead")?.addEventListener("click", (e) => {
     e.preventDefault();
-    let field = e.target.getAttribute("data-col");
+    const field = (e.target as Element).getAttribute("data-col");
     if (typeof field === "string" && field.length > 0) {
         const { sorting } = view.model;
         let v = sorting.getValue();
@@ -60,9 +71,10 @@ querySelector("thead")?.addEventListener("click", (e) => {
 
 querySelector("[data-pagination]")?.addEventListener("click", (e) => {
     e.preventDefault();
-    let page = e.target.getAttribute("data-page");
+    const page = (e.target as Element).getAttribute("data-page");
     if (typeof page === "string" && page.length > 0) {
-        page = Number.parseInt(page);
-        view.model.page.setValue(page);
+        view.model.page.setValue(
+            Number.parseInt(page)
+        );
     }
 });
