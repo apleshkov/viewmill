@@ -29,7 +29,7 @@ const cases = [
 
     () => {
         const a = viewmill.param(0);
-        let v;
+        let v: number | undefined;
         const btn = document.createElement("button");
         viewmill.listen(btn, "click", () => (v = a.getValue()), [a]);
         assertEq(v, undefined);
@@ -43,7 +43,7 @@ const cases = [
     () => {
         const abortController = new AbortController();
         const a = viewmill.param(0);
-        let v;
+        let v: number | undefined;
         const btn = document.createElement("button");
         viewmill.listen(btn, "click", () => (v = a.getValue()), [a], abortController.signal);
         assertEq(v, undefined);
@@ -63,10 +63,10 @@ const cases = [
     //
 
     () => {
-        const foo = viewmill.live(() => 1) as viewmill.Live<number>;
+        const foo = viewmill.live(() => 1);
         assertEq(foo.getValue(), 1);
         const a = viewmill.param(222);
-        const bar = viewmill.live(() => a.getValue(), [a]) as viewmill.Live<number>;
+        const bar = viewmill.live(() => a.getValue(), [a]);
         assertEq(bar.getValue(), 222);
         a.setValue(333);
         assertEq(bar.getValue(), 333);
@@ -75,7 +75,7 @@ const cases = [
     () => {
         const abortController = new AbortController();
         const a = viewmill.param(222);
-        const foo = viewmill.live(() => a.getValue(), [a], null, abortController.signal) as viewmill.Live<number>;
+        const foo = viewmill.live(() => a.getValue(), [a], null, abortController.signal);
         assertEq(foo.getValue(), 222);
         a.setValue(333);
         assertEq(foo.getValue(), 333);
@@ -90,7 +90,7 @@ const cases = [
             () => [a.getValue()],
             null,
             [1, ([a]) => [a]]
-        ) as viewmill.Live<number>[];
+        );
         assertEq(foo.getValue(), 1001);
         const b = viewmill.param(11);
         const c = viewmill.param(22);
@@ -101,7 +101,7 @@ const cases = [
             }),
             [b, c],
             [2, ({ bar, baz }) => [bar, baz]]
-        ) as viewmill.Live<number>[];
+        );
         assertEq(bar.getValue(), 11);
         assertEq(baz.getValue(), 22);
     },
@@ -716,8 +716,8 @@ const cases = [
 
         const target = document.createElement("div");
         const a = viewmill.param(0);
-        const check = viewmill.live(() => test(a.getValue()), [a]) as viewmill.Live<boolean>;
-        const list = viewmill.live(() => [a.getValue()], [a]) as viewmill.Live<number[]>;
+        const check = viewmill.live(() => test(a.getValue()), [a]);
+        const list = viewmill.live(() => [a.getValue()], [a]);
         viewmill.insert(
             viewmill.cond(
                 () => check.getValue(),
@@ -802,7 +802,7 @@ const cases = [
 
         const target = document.createElement("div");
         const a = viewmill.param(0);
-        const check = viewmill.live(() => test(a.getValue()), [a]) as viewmill.Live<boolean>;
+        const check = viewmill.live(() => test(a.getValue()), [a]);
         viewmill.insert(
             viewmill.cond(
                 () => check.getValue(),

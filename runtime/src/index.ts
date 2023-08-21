@@ -84,6 +84,18 @@ class ReadonlyLive<T> extends Live<T> {
 export function live<T>(
     readValue: () => T,
     deps?: Live<unknown>[] | null,
+    destruct?: null,
+    signal?: AbortSignal,
+): Live<T>;
+export function live<T>(
+    readValue: () => T,
+    deps: Live<unknown>[] | null,
+    destruct: [number, (value: T) => unknown[]],
+    signal?: AbortSignal,
+): Live<unknown>[]
+export function live<T>(
+    readValue: () => T,
+    deps?: Live<unknown>[] | null,
     destruct?: [number, (value: T) => unknown[]] | null,
     signal?: AbortSignal,
 ): Live<T> | Live<unknown>[] {
