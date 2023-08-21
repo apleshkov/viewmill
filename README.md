@@ -130,7 +130,7 @@ Run the bundler:
 npx esbuild src/index.ts --bundle --outdir=dist --target=es6
 ```
 
-So finally we can open `index.html` in a favourite browser and it'll show the counter telling us "The current value is 0!".
+So finally we can open `index.html` in a browser and it'll show the counter telling us "The current value is 0!".
 
 Let's modify `src/index.ts` a bit:
 ```ts
@@ -466,9 +466,11 @@ export default <E extends Insertable>(
                     .map(using)
                     .map((entry) => insert(entry, target, a));
             };
-            items.listen(update);
+            const abortController = new AbortController();
+            items.listen(update, abortController.signal);
             update();
             return (removing) => {
+                abortController.abort();
                 unmount(removing);
                 if (removing) {
                     target.removeChild(a);
@@ -545,12 +547,14 @@ export default function <E extends Insertable>(
                     unmounters = insertItems(items.getValue());
                 }
             };
+            const abortController = new AbortController();
             // Handling `userData` on every change
-            items.listen(({ userData }) => update(userData));
+            items.listen(({ userData }) => update(userData), abortController.signal);
             update();
             // Don't forget to insert the container
             target.insertBefore(container, anchor);
             return (removing) => {
+                abortController.abort();
                 // No need to remove the inserted items no matter what
                 // the `removing` argument is, cause they're all children
                 // of the container, ...
@@ -608,5 +612,58 @@ const xlist = ExNumList([1, 2, 3, 4], () => {
     )
 });
 
-xlist.insert(document.getElementById("app")!);
+xlist.insert(document.getElementById("app"));
+```
+
+### Fetching Data
+
+A very simple component to fetch remote data:
+```ts
+// src/fetcher.ts
+
+import { Insertable, Insertion } from "viewmill-runtime";
+
+export default function ({ url }: { url: string }): Insertable {
+    return new Insertion((target, anchor) => {
+        const abortController = new AbortController();
+        const info = document.createElement("div");
+        info.textContent = "Loading...";
+        fetch(url, { signal: abortController.signal })
+            //       ^^^^^^ Stop fetching if aborted
+            .then(() => info.textContent = "Loaded!")
+            .catch((e) => info.textContent = `[ERROR] ${e}`);
+        target.insertBefore(info, anchor);
+        return (removing) => {
+            // Aborting the controller on unmount
+            abortController.abort();
+            if (removing) {
+                target.removeChild(info);
+            }
+        };
+    });
+}
+```
+
+Fetching one remote url and a local one:
+```tsx
+// src/fetching.tsx
+
+import Fetcher from "./fetcher";
+
+export default () => (
+    <>
+        <Fetcher url="https://github.com" />
+        <Fetcher url="/" />
+    </>
+);
+```
+
+```ts
+// src/index.ts
+
+import Fetching from "./fetching-view";
+
+const view = Fetching();
+
+view.insert(document.getElementById("app"));
 ```
