@@ -520,7 +520,8 @@ export default function <E extends Insertable>(
 ): Insertable {
     if (items instanceof Live) {
         return new Insertion((target, anchor) => {
-            // Let's use a container for the sake of demonstration
+            // Let's use a container here to show how to unmount
+            // its children
             const container = document.createElement("div");
             let unmounters: (Unmounter | null)[] = [];
             const unmount = (removing: boolean) => {
@@ -544,12 +545,18 @@ export default function <E extends Insertable>(
                     unmounters = insertItems(items.getValue());
                 }
             };
+            // Handling `userData` on every change
             items.listen(({ userData }) => update(userData));
             update();
+            // Don't forget to insert the container
             target.insertBefore(container, anchor);
             return (removing) => {
-                unmount(removing);
+                // No need to remove the inserted items no matter what
+                // the `removing` argument is, cause they're all children
+                // of the container, ...
+                unmount(false);
                 if (removing) {
+                    // ... which is being removed here
                     target.removeChild(container);
                 }
             };
