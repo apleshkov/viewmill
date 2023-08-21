@@ -92,7 +92,7 @@ export function live<T>(
     deps: Live<unknown>[] | null,
     destruct: [number, (value: T) => unknown[]],
     signal?: AbortSignal,
-): Live<unknown>[]
+): Live<unknown>[];
 export function live<T>(
     readValue: () => T,
     deps?: Live<unknown>[] | null,
