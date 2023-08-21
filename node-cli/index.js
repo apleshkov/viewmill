@@ -111,7 +111,11 @@ async function transform(ctx, { inputPath, outputDir }, { re, watch, ...flags })
             for await (const { filename, eventType } of fs.watch(inputPath, { recursive: true })) {
                 if (eventType === "change" && filename && regexp.test(filename)) {
                     const p = path.join(inputPath, filename);
-                    await transformFile(ctx, p, inputPath, outputDir, flags);
+                    try {
+                        await transformFile(ctx, p, inputPath, outputDir, flags);
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }
             }
         } else {
