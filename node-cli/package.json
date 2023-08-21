@@ -1,6 +1,6 @@
 {
   "name": "viewmill",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "author": "apleshkov",
   "description": "A CLI tool to transform jsx/tsx files to reactive views in js/ts and then insert them into DOM, so no more need to write a lot of routine code to update DOM on some value change. Works great for Web Components. Written in Rust and based on swc (Speedy Web Compiler).",
@@ -24,8 +24,7 @@
   },
   "scripts": {
     "build": "wasm-pack build -t nodejs --out-name transform --no-pack --release -d \"$(pwd)/tr\" ../wasm-tr-str",
-    "test": "node test.js",
-    "prepub": "npm run build && rm tr/.gitignore"
+    "test": "node test.js"
   },
   "files": [
     "tr",
