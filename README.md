@@ -1,8 +1,6 @@
 # viewmill
 
-A tool to transform jsx/tsx files to reactive views in js/ts and then insert them into DOM, so no more need to write a lot of routine code to update DOM on some value change.
-
-Works perfectly for [Web Components](#web-components).
+A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks due to its portable nature.
 
 You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (M**V**VM - the *view*) and their state could be modified by updatating parameters inside the `model` field (MV**VM** - the *viewmodel*).
 
