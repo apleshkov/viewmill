@@ -2,7 +2,7 @@
 
 A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks due to its portable nature.
 
-You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (M[**V**]VM - the *view*) and their state could be modified by updatating parameters inside the `model` field (MV[**VM**] - the *viewmodel*).
+You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updatating parameters inside the `model` field (the *viewmodel*).
 
 *Note*: the view cannot update its state from the inside.
 
