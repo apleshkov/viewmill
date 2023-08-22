@@ -1,6 +1,8 @@
 # viewmill
 
-A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks due to its portable nature.
+A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
+
+`viewmill` is aimed to create complex UIs from a simple form of JSX. There's no SSR support, so it's mostly suitable for SPAs, e.g. tv & mobile apps, messengers, admin panels and so on.
 
 You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updatating parameters inside the `model` field (the *viewmodel*).
 
@@ -26,6 +28,8 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
 ```
 
 - [custom components](#custom-components)
+
+There're no specific tags, attributes or other specific HTML syntax.
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
