@@ -29,7 +29,7 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
 
 - [custom components](#custom-components)
 
-There're no specific tags, attributes or other specific HTML syntax.
+There're no non-standard HTML attributes or other specific syntax.
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
