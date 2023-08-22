@@ -2,7 +2,7 @@
 
 A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
-`viewmill` is aimed to create complex UIs from a simple form of JSX. There's no SSR support, so it's mostly suitable for SPAs, e.g. tv & mobile apps, messengers, admin panels and so on.
+`viewmill` is aimed to create complex UIs from a simple form of JSX. There's no SSR support, so it's mostly suitable for SPAs, e.g. tv & mobile apps, messengers, admin panels and so on. Please, see [the examples](#examples).
 
 You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updatating parameters inside the `model` field (the *viewmodel*).
 
@@ -671,3 +671,17 @@ const view = Fetching();
 
 view.insert(document.getElementById("app"));
 ```
+
+## Examples
+
+### Table
+
+A table with sorting and paging. 
+
+- The whole view is defined in just one file (see `src/table.tsx`)
+- Written in Typescript
+- Data from [Random User Generator](https://randomuser.me)
+- Visuals by [Bootstrap](https://getbootstrap.com)
+- Bundled and served with [esbuild](https://esbuild.github.io)
+
+![Demo](https://github.com/apleshkov/viewmill/tree/main/examples/table/demo.gif)
