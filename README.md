@@ -674,7 +674,7 @@ view.insert(document.getElementById("app"));
 
 ## Examples
 
-### Table
+### [Table](https://github.com/apleshkov/viewmill/tree/main/examples/table/)
 
 A table with sorting and paging. 
 
@@ -684,4 +684,4 @@ A table with sorting and paging.
 - Visuals by [Bootstrap](https://getbootstrap.com)
 - Bundled and served with [esbuild](https://esbuild.github.io)
 
-![Demo](https://github.com/apleshkov/viewmill/tree/main/examples/table/demo.gif)
+![Demo](https://github.com/apleshkov/viewmill/blob/main/examples/table/demo.gif)
