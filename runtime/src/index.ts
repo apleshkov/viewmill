@@ -370,33 +370,45 @@ export function expr(
     }
 }
 
-export function attr(
-    el: Element,
-    name: string,
-    value: (() => string) | string,
-    deps?: Live<unknown>[],
-    signal?: AbortSignal
-) {
-    if (typeof value === "function") {
-        const update = () => {
-            el.setAttribute(name, value());
-        };
-        listenDeps(deps, update, signal);
-        update();
+function updateAttr(el: Element, name: string, value: string | boolean) {
+    if (typeof value === "boolean") {
+        if (value) {
+            el.setAttribute(name, "");
+        } else {
+            el.removeAttribute(name);
+        }
     } else {
         el.setAttribute(name, value);
     }
 }
 
+export function attr(
+    el: Element,
+    name: string,
+    value: (() => string | boolean) | string | boolean,
+    deps?: Live<unknown>[],
+    signal?: AbortSignal
+) {
+    if (typeof value === "function") {
+        const update = () => {
+            updateAttr(el, name, value());
+        };
+        listenDeps(deps, update, signal);
+        update();
+    } else {
+        updateAttr(el, name, value);
+    }
+}
+
 export function attrs(
     el: Element,
-    values: (() => Record<string, string>) | Record<string, string>,
+    values: (() => Record<string, string | boolean>) | Record<string, string | boolean>,
     deps?: Live<unknown>[],
     signal?: AbortSignal,
 ) {
-    const update = (v: Record<string, string>) => {
+    const update = (v: Record<string, string | boolean>) => {
         Object.keys(v).forEach((key) => (
-            el.setAttribute(key, v[key])
+            updateAttr(el, key, v[key])
         ))
     };
     if (typeof values === "function") {

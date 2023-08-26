@@ -456,6 +456,40 @@ const cases = [
         assertEq(el.getAttribute("bar"), "updated text");
     },
 
+    () => {
+        const el = document.createElement("div");
+        assertEq(el.getAttribute("foo"), null);
+        viewmill.attr(el, "foo", true);
+        assertEq(el.getAttribute("foo"), "");
+        viewmill.attr(el, "foo", false);
+        assertEq(el.getAttribute("foo"), null);
+
+        const bar = viewmill.param(false);
+        viewmill.attr(el, "bar", () => bar.getValue(), [bar]);
+        assertEq(el.getAttribute("bar"), null);
+        bar.setValue(true);
+        assertEq(el.getAttribute("bar"), "");
+        bar.setValue(false);
+        assertEq(el.getAttribute("bar"), null);
+    },
+
+    () => {
+        const el = document.createElement("div");
+        assertEq(el.getAttribute("foo"), null);
+        viewmill.attrs(el, { foo: true });
+        assertEq(el.getAttribute("foo"), "");
+        viewmill.attrs(el, { foo: false });
+        assertEq(el.getAttribute("foo"), null);
+
+        const bar = viewmill.param(false);
+        viewmill.attrs(el, () => ({ bar: bar.getValue() }), [bar]);
+        assertEq(el.getAttribute("bar"), null);
+        bar.setValue(true);
+        assertEq(el.getAttribute("bar"), "");
+        bar.setValue(false);
+        assertEq(el.getAttribute("bar"), null);
+    },
+
     //
     // el
     //
