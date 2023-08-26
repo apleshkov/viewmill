@@ -29,7 +29,7 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
 
 - [custom components](#custom-components)
 
-There're no non-standard HTML attributes or other specific syntax, but it's worth to see [the corresponding notes](#html).
+There're no non-standard HTML attributes or other specific syntax, but it's worth to see the corresponding [notes](#html).
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
@@ -720,7 +720,7 @@ export default (flag?: boolean | null) => (
 
 #### Remove Attribute
 
-Just set its value to `false` as it's shown in the [boolean attributes](#boolean-attributes) section.
+Just set its value to `false` as it's shown in the section [above](#boolean-attribute).
 
 #### Toggle Attribute
 
