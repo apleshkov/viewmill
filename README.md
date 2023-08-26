@@ -33,7 +33,7 @@ There're no non-standard HTML attributes or other specific syntax, but it's wort
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
-## Counter
+## Getting Started
 
 To demonstrate how the tool works, its basic principles and how to use it, let's create a counter :)
 
