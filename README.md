@@ -685,3 +685,14 @@ A table with sorting and paging.
 - Bundled and served with [esbuild](https://esbuild.github.io)
 
 ![Demo](https://github.com/apleshkov/viewmill/blob/main/examples/table/demo.gif)
+
+### [Form](https://github.com/apleshkov/viewmill/tree/main/examples/form/)
+
+A form with dynamic fields and validation. 
+
+- The whole view is defined in just one file (see `src/form.tsx`)
+- Written in Typescript
+- Visuals by [Bootstrap](https://getbootstrap.com)
+- Bundled and served with [esbuild](https://esbuild.github.io)
+
+![Demo](https://github.com/apleshkov/viewmill/blob/main/examples/form/demo.gif)

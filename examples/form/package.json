@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "scripts": {
+    "views": "npx viewmill --verbose --suffix \"-view\" --watch src",
+    "bundler": "npx esbuild src/index.ts src/index.css --bundle --outdir=www/x --servedir=www --target=es6 --sourcemap --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.17",
+    "viewmill": "file:../../node-cli"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.1",
+    "viewmill-runtime": "file:../../runtime"
+  }
+}

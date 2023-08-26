@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "strictNullChecks": true,
+        "lib": [
+            "ES6",
+            "dom"
+        ],
+        "jsx": "preserve"
+    }
+}
