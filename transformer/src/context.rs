@@ -11,8 +11,8 @@ use super::{
 };
 
 pub struct TrContext {
-    lib: NameAndExpr,
-    unmount_sig: NameAndExpr,
+    lib_name: JsWord,
+    unmount_sig_name: JsWord,
 }
 
 impl TrContext {
@@ -22,11 +22,11 @@ impl TrContext {
 
         let lib_name = glob::uname(LIB, src);
         scope.insert(&lib_name);
-        let unmount_sig = glob::uname(UNMOUNT_SIG, src);
-        scope.insert(&unmount_sig);
+        let unmount_sig_name = glob::uname(UNMOUNT_SIG, src);
+        scope.insert(&unmount_sig_name);
         Self {
-            lib: NameAndExpr::ident(lib_name),
-            unmount_sig: NameAndExpr::ident(unmount_sig),
+            lib_name,
+            unmount_sig_name,
         }
     }
 }
@@ -38,7 +38,7 @@ impl TrContext {
         let src = Str::from(RUNTIME);
         let s = ImportSpecifier::Namespace(ImportStarAsSpecifier {
             span: DUMMY_SP,
-            local: ident(&self.lib.name),
+            local: ident(&self.lib_name),
         });
         ImportDecl {
             span: DUMMY_SP,
@@ -59,7 +59,7 @@ impl TrContext {
     ) -> Box<Expr> {
         static_jsword!(LIVE, "live");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &LIVE,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(arrow_short_expr(None, expr));
@@ -69,7 +69,7 @@ impl TrContext {
                 } else {
                     args.add_expr(null_expr());
                 }
-                args.add_expr(self.unmount_sig.expr());
+                args.add_expr(ident_expr(&self.unmount_sig_name));
             })),
         )
     }
@@ -77,7 +77,7 @@ impl TrContext {
     pub fn param(&self, initial: Box<Expr>) -> Box<Expr> {
         static_jsword!(PARAM, "param");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &PARAM,
             Some(ArgsBuilder::from(initial).build()),
         )
@@ -86,7 +86,7 @@ impl TrContext {
     pub fn condition(&self, expr: &CondExpr, deps: &Vec<JsWord>) -> Box<Expr> {
         static_jsword!(COND, "cond");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &COND,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(arrow_short_expr(None, expr.test.clone()))
@@ -100,7 +100,7 @@ impl TrContext {
     pub fn expression(&self, expr: Box<Expr>, deps: &Vec<JsWord>) -> Box<Expr> {
         static_jsword!(EXPR, "expr");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &EXPR,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(arrow_short_expr(None, expr))
@@ -112,7 +112,7 @@ impl TrContext {
     pub fn list(&self, expr: Box<Expr>, deps: Option<&Vec<JsWord>>) -> Box<Expr> {
         static_jsword!(LIST, "list");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &LIST,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(arrow_short_expr(None, expr));
@@ -133,7 +133,7 @@ impl TrContext {
     ) -> Box<Expr> {
         static_jsword!(ATTR, "attr");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &ATTR,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(ident_expr(node_name));
@@ -160,7 +160,7 @@ impl TrContext {
     ) -> Box<Expr> {
         static_jsword!(ATTRS, "attrs");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &ATTRS,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(ident_expr(node_name));
@@ -180,7 +180,7 @@ impl TrContext {
     pub fn element(&self, html: Option<Box<Expr>>, func: Option<Box<Expr>>) -> Box<Expr> {
         static_jsword!(EL, "el");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &EL,
             Some(ArgsBuilder::build_using(|args| {
                 if let Some(html) = html {
@@ -198,7 +198,7 @@ impl TrContext {
     pub fn insert(&self, expr: Box<Expr>, target_name: &JsWord, anchor_name: &JsWord) -> Box<Expr> {
         static_jsword!(INSERT, "insert");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &INSERT,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(expr)
@@ -211,7 +211,7 @@ impl TrContext {
     pub fn unmount_on(&self, sig: &JsWord, expr: Box<Expr>) -> Box<Expr> {
         static_jsword!(UNMOUNT_ON, "unmountOn");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &UNMOUNT_ON,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(ident_expr(sig)).add_expr(expr);
@@ -229,7 +229,7 @@ impl TrContext {
     ) -> Box<Expr> {
         static_jsword!(LISTEN, "listen");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &LISTEN,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(ident_expr(&target_name.clone()))
@@ -248,7 +248,7 @@ impl TrContext {
     pub fn cmp(&self, name: Box<Expr>, props: Box<Expr>) -> Box<Expr> {
         static_jsword!(CMP, "cmp");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &CMP,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr(name);
@@ -260,7 +260,7 @@ impl TrContext {
     pub fn view(&self, params: Vec<Ident>, body: Box<BlockStmtOrExpr>) -> Box<Expr> {
         static_jsword!(VIEW, "view");
         obj_method_call(
-            self.lib.expr(),
+            ident_expr(&self.lib_name),
             &VIEW,
             Some(ArgsBuilder::build_using(|args| {
                 args.add_expr({
@@ -282,29 +282,11 @@ impl TrContext {
                             }
                             Pat::from(obj.build_expr())
                         },
-                        Pat::from(self.unmount_sig.expr()),
+                        Pat::from(ident_expr(&self.unmount_sig_name)),
                     ]),
                     body,
                 ));
             })),
         )
-    }
-}
-
-struct NameAndExpr {
-    name: JsWord,
-    expr: Box<Expr>,
-}
-
-impl NameAndExpr {
-    fn ident(name: JsWord) -> Self {
-        Self {
-            expr: ident_expr(&name),
-            name,
-        }
-    }
-
-    fn expr(&self) -> Box<Expr> {
-        self.expr.clone()
     }
 }
