@@ -65,12 +65,12 @@ pub fn tr_root_frag(
 }
 
 fn tr_el_child(
-    ctx: &TrContext,
     child: &mut JSXElementChild,
     builder: &mut ElBuilder,
     container_name: &JsWord,
     node_path: &NodePath,
 ) -> Result<Option<NodePath>, SpanError> {
+    let ctx = &builder.ctx;
     match child {
         JSXElementChild::JSXText(text) => {
             let text = tr_child_text(&text.value);
@@ -156,7 +156,7 @@ fn tr_child_el(
     container_name: &JsWord,
     node_path: &NodePath,
 ) -> Result<NodePath, SpanError> {
-    let ctx = builder.ctx;
+    let ctx = &builder.ctx;
     match ElName::from(&el.opening.name) {
         ElName::HTML(tag_name) => tr_html_el(&tag_name, el, builder, node_path),
         ElName::Custom(name) => {
@@ -174,7 +174,7 @@ fn tr_child_frag(
     container_name: &JsWord,
     node_path: &NodePath,
 ) -> Result<NodePath, SpanError> {
-    let expr = tr_root_frag(builder.ctx, frag, &builder.scope)?;
+    let expr = tr_root_frag(&builder.ctx, frag, &builder.scope)?;
     Ok(builder.push_insertable_expr(expr, container_name, node_path))
 }
 
@@ -283,7 +283,7 @@ fn tr_html_el(
         builder.push_html_str(">");
         let mut node_path = node_path.first();
         for child in el.children.iter_mut() {
-            if let Some(path) = tr_el_child(builder.ctx, child, builder, &node_name, &node_path)? {
+            if let Some(path) = tr_el_child(child, builder, &node_name, &node_path)? {
                 node_path = path.next();
             }
         }
@@ -300,7 +300,7 @@ fn tr_el_attr(
     node_name: &JsWord,
 ) -> Result<(), SpanError> {
     static ON: &str = "on";
-    let ctx = builder.ctx;
+    let ctx = &builder.ctx;
     let (name, event_name) = match &attr.name {
         JSXAttrName::Ident(ident) => {
             let name = ident.sym.to_string();
@@ -364,7 +364,7 @@ fn tr_el_spread_attr(
     builder: &mut ElBuilder,
     node_name: &JsWord,
 ) -> Result<(), SpanError> {
-    let ctx = builder.ctx;
+    let ctx = &builder.ctx;
     let expr = &mut attr.expr;
     let expr = match tr_expr(ctx, expr, &builder.scope)? {
         TrValue::None => ctx.attrs(node_name, expr.clone(), None, None),
@@ -425,7 +425,7 @@ fn str_from_nn(nn: &JSXNamespacedName) -> String {
 }
 
 struct ElBuilder<'a> {
-    ctx: &'a TrContext,
+    ctx: TrContext,
     scope: Scope<'a>,
     container_name: JsWord,
     unmount_sig_name: JsWord,
@@ -435,7 +435,7 @@ struct ElBuilder<'a> {
 }
 
 impl<'a> ElBuilder<'a> {
-    fn new(ctx: &'a TrContext, scope: &'a Scope) -> Self {
+    fn new(ctx: &TrContext, scope: &'a Scope) -> Self {
         const CONTAINER: &str = "container";
         const UNMOUNT_SIGNAL: &str = "unmountSignal";
 
@@ -443,7 +443,7 @@ impl<'a> ElBuilder<'a> {
         let container_name = scope.insert_str_prefixed(CONTAINER);
         let unmount_sig_name = scope.insert_str_prefixed(UNMOUNT_SIGNAL);
         return Self {
-            ctx,
+            ctx: ctx.nested(unmount_sig_name.clone()),
             scope,
             container_name,
             unmount_sig_name,
@@ -502,10 +502,12 @@ impl<'a> ElBuilder<'a> {
         self.show_body = true;
         self.push_html_str("<!>");
         let anchor = self.push_node_path("anchor", node_path);
-        self.body.push(stmt_from_expr(self.ctx.unmount_on(
-            &self.unmount_sig_name,
-            self.ctx.insert(expr, container_name, &anchor.root()),
-        )));
+        self.body
+            .push(stmt_from_expr(self.ctx.unmount_on(self.ctx.insert(
+                expr,
+                container_name,
+                &anchor.root(),
+            ))));
         anchor
     }
 

@@ -77,7 +77,7 @@ export default function(a, b) {
                     x: viewmill.live(()=>(loading ? a.getValue() + b.getValue() : false), [
                         a,
                         b
-                    ], null, unmountSignal),
+                    ], null, unmountSignal1),
                     children: viewmill.cmp(Foo, {
                         x: "one child"
                     })

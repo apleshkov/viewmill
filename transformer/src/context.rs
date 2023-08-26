@@ -29,6 +29,13 @@ impl TrContext {
             unmount_sig_name,
         }
     }
+
+    pub fn nested(&self, sig_name: JsWord) -> Self {
+        Self {
+            lib_name: self.lib_name.clone(),
+            unmount_sig_name: sig_name,
+        }
+    }
 }
 
 impl TrContext {
@@ -208,13 +215,14 @@ impl TrContext {
         )
     }
 
-    pub fn unmount_on(&self, sig: &JsWord, expr: Box<Expr>) -> Box<Expr> {
+    pub fn unmount_on(&self, expr: Box<Expr>) -> Box<Expr> {
         static_jsword!(UNMOUNT_ON, "unmountOn");
         obj_method_call(
             ident_expr(&self.lib_name),
             &UNMOUNT_ON,
             Some(ArgsBuilder::build_using(|args| {
-                args.add_expr(ident_expr(sig)).add_expr(expr);
+                args.add_expr(ident_expr(&self.unmount_sig_name))
+                    .add_expr(expr);
             })),
         )
     }
