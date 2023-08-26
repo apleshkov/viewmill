@@ -833,6 +833,51 @@ const cases = [
                 assertEq(noComments(target.innerHTML), "");
             }
         }
+    },
+
+    () => {
+        let unmounted = false;
+        const Foo = () => (
+            new viewmill.Insertion(() => () => unmounted = true)
+        );
+        const { unmount } = viewmill.view({}, () => (
+            viewmill.cond(
+                () => true,
+                () => viewmill.el("<ul><!></ul>", (container, unmountSignal) => {
+                    viewmill.unmountOn(
+                        unmountSignal,
+                        viewmill.insert(
+                            viewmill.list(
+                                () => [1].map(
+                                    () => (
+                                        viewmill.el("<li><!></li>", (container, unmountSignal) => {
+                                            viewmill.unmountOn(
+                                                unmountSignal,
+                                                viewmill.insert(
+                                                    viewmill.expr(
+                                                        () => viewmill.cmp(Foo, {})
+                                                    ),
+                                                    container.firstChild!,
+                                                    container.firstChild!.firstChild
+                                                )
+                                            )
+                                        })
+                                    )
+                                )
+                            ),
+                            container.firstChild!,
+                            container.firstChild!.firstChild
+                        )
+                    );
+                }),
+                () => null
+            )
+        )).insert(
+            document.createElement("div")
+        );
+        assertEq(unmounted, false);
+        unmount();
+        assertEq(unmounted, true);
     }
 ];
 
