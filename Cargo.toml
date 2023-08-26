@@ -1,2 +1,6 @@
 [workspace]
 members = ["transformer", "wasm-tr-str"]
+
+[profile.release]
+lto = true
+
