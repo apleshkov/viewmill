@@ -29,7 +29,7 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
 
 - [custom components](#custom-components)
 
-There're no non-standard HTML attributes or other specific syntax.
+There're no non-standard HTML attributes or other specific syntax, but it's worth to see [the corresponding notes](#html).
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
@@ -670,6 +670,77 @@ import Fetching from "./fetching-view";
 const view = Fetching();
 
 view.insert(document.getElementById("app"));
+```
+
+## Notes
+
+### Typescript Configuration
+
+#### [`jsx`](https://www.typescriptlang.org/tsconfig#jsx)
+
+The option should be set to `preserve`:
+```json
+{
+    "compilerOptions": {
+        "jsx": "preserve"
+    }
+}
+```
+
+#### Known Issues
+
+- Enabled [`noImplicitAny`](https://www.typescriptlang.org/tsconfig#noImplicitAny) (and [`strict`](https://www.typescriptlang.org/tsconfig#strict) accordingly) causes `JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists. ts(7026)` in TSX files.
+
+### HTML
+
+#### [Boolean Attribute](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML)
+
+Let's consider a simple example:
+```tsx
+export default (flag: boolean) => (
+    <input type="checkbox" checked={flag} />
+);
+```
+
+As a result, the `checked` attribute is present if the `flag` value is `true`, and is absent otherwise.
+
+It also works for the spread:
+```tsx
+export default (flag: boolean) => (
+    <input type="checkbox" {...{ checked: flag }} />
+);
+```
+
+Please, note if a value is `null` or `undefined` it's necessary to convert it explicitly:
+```tsx
+export default (flag?: boolean | null) => (
+    <input type="checkbox" checked={!!flag} />
+);
+```
+
+#### Remove Attribute
+
+Just set its value to `false` as it's shown in the [boolean attributes](#boolean-attributes) section.
+
+#### Toggle Attribute
+
+There's no specific syntax for that, but you can introduce a custom function:
+```ts
+export function cls(v: Record<string, boolean | undefined | null>): string | false {
+    const c = Object.keys(v).filter((k) => !!v[k]);
+    return c.length > 0 ? c.join(" ") : false;
+}
+```
+
+So it can be used like:
+```tsx
+import { cls } from "./utils";
+
+export default (a?: boolean | null) => (
+    <div class={cls({ enabled: a, disabled: !a })}>
+        <code>{a}</code>
+    </div>
+);
 ```
 
 ## Examples
