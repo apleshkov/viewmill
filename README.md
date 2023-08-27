@@ -704,7 +704,7 @@ export default (flag: boolean) => (
 
 As a result, the `checked` attribute is present if the `flag` value is `true`, and is absent otherwise.
 
-It also works for the spread:
+It also works for the spread attributes syntax:
 ```tsx
 export default (flag: boolean) => (
     <input type="checkbox" {...{ checked: flag }} />
