@@ -90,15 +90,21 @@ impl TrContext {
         )
     }
 
-    pub fn condition(&self, expr: &CondExpr, deps: &Vec<JsWord>) -> Box<Expr> {
+    pub fn condition(
+        &self,
+        test: Box<Expr>,
+        cons: Box<Expr>,
+        alt: Box<Expr>,
+        deps: &Vec<JsWord>,
+    ) -> Box<Expr> {
         static_jsword!(COND, "cond");
         obj_method_call(
             ident_expr(&self.lib_name),
             &COND,
             Some(ArgsBuilder::build_using(|args| {
-                args.add_expr(arrow_short_expr(None, expr.test.clone()))
-                    .add_expr(arrow_short_expr(None, expr.cons.clone()))
-                    .add_expr(arrow_short_expr(None, expr.alt.clone()))
+                args.add_expr(arrow_short_expr(None, test))
+                    .add_expr(arrow_short_expr(None, cons))
+                    .add_expr(arrow_short_expr(None, alt))
                     .add_expr(deps_expr(deps));
             })),
         )

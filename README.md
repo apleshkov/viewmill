@@ -17,6 +17,12 @@ You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Mode
         : <strong>Loaded!</strong>}
 ```
 
+- **conditionals** via the logical AND (`&&`) operator:
+```tsx
+    {loading && <span>Loading...</span>}
+```
+Under the hood `viewmill` considers it a short form of the ternary operator, when the third operand is `null`, e.g. `a && b` is actually `a ? b : null`.
+
 - **loops** via the spread child syntax:
 ```tsx
     <>{...items}</>
