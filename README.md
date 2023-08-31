@@ -1,5 +1,7 @@
 # viewmill
 
+[Getting Started](#getting-started) | [Examples](#examples) | [Notes](#notes)
+
 A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
 `viewmill` is aimed to create complex reactive UIs from a simple form of JSX (see [the examples](#examples) section). There's no SSR support.
