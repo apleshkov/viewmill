@@ -1,14 +1,18 @@
 # viewmill
 
-[Getting Started](#getting-started) | [Examples](#examples) | [Notes](#notes)
+[Features](#features) | [Installation](#installation) | [Getting Started](#getting-started) | [Examples](#examples) | [Notes](#notes)
 
 A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
-`viewmill` is aimed to create complex reactive UIs from a simple form of JSX (see [the examples](#examples) section). There's no SSR support.
+`viewmill` is aimed to create complex reactive UIs from a simple form of JSX (see [the examples](#examples) section).
 
 You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updatating parameters inside the `model` field (the *viewmodel*).
 
 *Note*: the view cannot update its state from the inside.
+
+The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
+
+## Features
 
 `viewmill` supports all the valid JSX syntax, including:
 
@@ -39,7 +43,11 @@ Under the hood `viewmill` considers it a short form of the ternary operator, whe
 
 There're no non-standard HTML attributes or other specific syntax, but it's worth to see the corresponding [notes](#html).
 
-The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
+## Installation
+
+```sh
+npm i --save-dev viewmill && npm i viewmill-runtime
+```
 
 ## Getting Started
 
