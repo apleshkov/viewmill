@@ -2,7 +2,7 @@
 
 **[Features](#features) | [Installation](#installation) | [Getting Started](#getting-started) | [Notes](#notes) | [Examples](#examples)**
 
-`viewmill` is aimed to create complex reactive UIs from a simple form of JSX. It *statically transforms* `*.jsx` and `*.tsx` files to **reactive views** in JavaScript or TypeScript correspondingly, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
+`viewmill` is aimed to create complex UIs from a simple form of JSX. It *statically transforms* `*.jsx` and `*.tsx` files to *reactive* views in JavaScript or TypeScript correspondingly, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
 In other words, the tool *transpiles* JSX to a code in JS, which creates its DOM nodes from generated [templates](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) and updates them using [ordinary events](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
