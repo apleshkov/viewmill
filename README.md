@@ -1,6 +1,6 @@
 # viewmill
 
-[Features](#features) | [Installation](#installation) | [Getting Started](#getting-started) | [Examples](#examples) | [Notes](#notes)
+[Features](#features) | [Installation](#installation) | [Getting Started](#getting-started) | [Notes](#notes) | [Examples](#examples)
 
 A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
@@ -209,8 +209,6 @@ export default (count: number, onClick: (e: Event) => void) => {
     </>;
 }
 ```
-
-Please, note the HTML-standard notation to attach the event handler.
 
 ```ts
 // src/index.ts
@@ -692,20 +690,16 @@ view.insert(document.getElementById("app"));
 
 ### Typescript Configuration
 
-#### [`jsx`](https://www.typescriptlang.org/tsconfig#jsx)
-
-The option should be set to `preserve`:
 ```json
 {
     "compilerOptions": {
-        "jsx": "preserve"
+        "jsx": "preserve",
+        "jsxImportSource": "viewmill-runtime"
     }
 }
 ```
 
-#### Known Issues
-
-- Enabled [`noImplicitAny`](https://www.typescriptlang.org/tsconfig#noImplicitAny) (and [`strict`](https://www.typescriptlang.org/tsconfig#strict) accordingly) causes `JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists. ts(7026)` in TSX files.
+The `jsxImportSource` option here fixes the `JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists. ts(7026)` error if [`noImplicitAny`](https://www.typescriptlang.org/tsconfig#noImplicitAny) or [`strict`](https://www.typescriptlang.org/tsconfig#strict) enabled.
 
 ### HTML
 
