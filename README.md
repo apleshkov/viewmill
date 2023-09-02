@@ -2,13 +2,13 @@
 
 [Features](#features) | [Installation](#installation) | [Getting Started](#getting-started) | [Notes](#notes) | [Examples](#examples)
 
-A tool to transform jsx/tsx files to reactive views in js/ts, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
+`viewmill` is aimed to create complex reactive UIs from a simple form of JSX. It *statically* transforms `*.jsx` and `*.tsx` files to **reactive views** in JavaScript or TypeScript correspondingly, so they could be easily [used](#web-components) in Web Components, inserted into DOM or integrated with other libraries and frameworks.
 
-`viewmill` is aimed to create complex reactive UIs from a simple form of JSX (see [the examples](#examples) section).
+In other words, the tool transpiles JSX to a code in JS, which creates its DOM nodes from generated [templates](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) and updates them using [ordinary events](https://developer.mozilla.org/en-US/docs/Web/API/Event).
 
-You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updatating parameters inside the `model` field (the *viewmodel*).
+You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updating parameters of the `model` field (the *viewmodel*).
 
-*Note*: the view cannot update its state from the inside.
+*Note*: a view cannot update its state from the inside.
 
 The tool is written in Rust and based on [swc](https://swc.rs) (Speedy Web Compiler) to parse and emit code.
 
