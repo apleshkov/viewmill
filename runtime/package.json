@@ -1,6 +1,6 @@
 {
   "name": "viewmill-runtime",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "author": "apleshkov",
   "description": "The viewmill runtime",
@@ -14,7 +14,7 @@
     "directory": "runtime"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "npx tsc && cp src/jsx-runtime.d.ts dist",
     "test": "npx esbuild tests/test.ts --bundle --outdir=tests/viewmill --target=es6 --watch"
   },
   "files": [
@@ -22,6 +22,15 @@
   ],
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts"
+    }
+  },
   "devDependencies": {
     "esbuild": "^0.19.2",
     "typescript": "^5.1.6"
