@@ -76,7 +76,7 @@ async function transformDir(ctx, inputDir, outputDir, re, flags) {
             const entryPath = path.join(dir, entry);
             const stats = await fs.stat(entryPath);
             if (stats.isDirectory()) {
-                await walk(dir);
+                await walk(entryPath);
             } else if (stats.isFile() && re.test(entryPath)) {
                 files.push(entryPath);
             }
