@@ -1,6 +1,6 @@
 {
   "name": "viewmill-runtime",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "license": "MIT",
   "author": "apleshkov",
   "description": "The viewmill runtime",
