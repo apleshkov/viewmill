@@ -461,7 +461,7 @@ export type InsertedView = {
     querySelector(selectors: string): Element | null;
     querySelectorAll(selectors: string): Element[];
     remove(): void;
-    unmount(): void;
+    unmount(removing?: boolean): void;
 };
 
 export function view<M extends object>(
