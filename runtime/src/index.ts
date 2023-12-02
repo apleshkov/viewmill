@@ -475,6 +475,10 @@ export function view<M extends object>(
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");
             span.append(insertable(model, unmountSignal));
+            const unmount = (removing: boolean) => {
+                abortController.abort();
+                span.unmount(removing);
+            };
             return {
                 unmountSignal,
                 querySelector(selectors) {
@@ -500,12 +504,10 @@ export function view<M extends object>(
                     return result;
                 },
                 remove() {
-                    abortController.abort();
-                    span.unmount(true);
+                    unmount(true);
                 },
-                unmount() {
-                    abortController.abort();
-                    span.unmount(false);
+                unmount(removing = false) {
+                    unmount(removing);
                 }
             };
         }
