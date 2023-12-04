@@ -6,7 +6,7 @@
 
 In other words, the tool *transpiles* JSX to a code in JS, which creates its DOM nodes from generated [templates](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template) and manipulates them *directly*, so there's no Virtual DOM.
 
-You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insert` method (the *view*) and their state could be modified by updating parameters of the `model` field (the *viewmodel*).
+You can think of the views in terms of [MVVM](https://en.wikipedia.org/wiki/Model–view–viewmodel): after being instantiated, they could be inserted into DOM via the `insertTo` method (the *view*) and their state could be modified by updating parameters of the `model` field (the *viewmodel*).
 
 *Note*: a view cannot update its state from the inside.
 
@@ -142,7 +142,7 @@ import Counter from "./counter-view";
 // you can also use the `new` operator here, e.g. `new Counter(0)`
 const view = Counter(0);
 
-view.insert(document.getElementById("app"));
+view.insertTo(document.getElementById("app"));
 ```
 
 Run the bundler:
@@ -161,7 +161,7 @@ import Counter from "./counter-view";
 const view = Counter(0);
 view.model.count.setValue(1);
 
-view.insert(document.getElementById("app"));
+view.insertTo(document.getElementById("app"));
 ```
 
 We need to re-run the transformation and bundling commands, and then refresh the opened page. Now it says "The current value is 1!" and that's correct.
@@ -219,7 +219,7 @@ const view = Counter(0, () => {
     view.model.count.updateValue((c) => (c + 1));
 });
 
-view.insert(document.getElementById("app"));
+view.insertTo(document.getElementById("app"));
 ```
 
 ### Query Selector & Event Listener
@@ -245,7 +245,7 @@ import Counter from "./counter-view";
 
 const view = Counter(0);
 
-const { querySelector } = view.insert(document.getElementById("app"));
+const { querySelector } = view.insertTo(document.getElementById("app"));
 
 querySelector("button")?.addEventListener("click", () => {
     view.model.count.updateValue((c) => (c + 1));
@@ -257,7 +257,7 @@ There's the `querySelectorAll` method also.
 
 ### Removing & Unmounting
 
-If at some point an inserted view should be removed, the `insert` method returns the necessary functionality:
+If at some point an inserted view should be removed, the `insertTo` method returns the necessary functionality:
 ```ts
 const {
     // Every insertion is associated with a specific `AbortController`, 
@@ -269,12 +269,12 @@ const {
     // Unmounts the inserted nodes without the actual removing and triggers the signal.
     // Useful if there's no need to affect DOM.
     unmount
-} = view.insert(...);
+} = view.insertTo(...);
 ```
 
 So if we need to remove the counter:
 ```ts
-const { unmountSignal, remove } = view.insert(document.getElementById("app"));
+const { unmountSignal, remove } = view.insertTo(document.getElementById("app"));
 
 unmountSignal.addEventListener("abort", () => console.log("Bye!"));
 
@@ -302,7 +302,7 @@ customElements.define("my-counter", class extends HTMLElement {
 
     connectedCallback() {
         if (this.isConnected) {
-            const inserted = this.view.insert(this);
+            const inserted = this.view.insertTo(this);
             const {
                 unmountSignal: signal,
                 querySelector
@@ -630,7 +630,7 @@ const xlist = ExNumList([1, 2, 3, 4], () => {
     )
 });
 
-xlist.insert(document.getElementById("app"));
+xlist.insertTo(document.getElementById("app"));
 ```
 
 ### Fetching Data
@@ -683,7 +683,7 @@ import Fetching from "./fetching-view";
 
 const view = Fetching();
 
-view.insert(document.getElementById("app"));
+view.insertTo(document.getElementById("app"));
 ```
 
 ## Notes

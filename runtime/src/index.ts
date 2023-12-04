@@ -161,7 +161,7 @@ export function unmountOn(signal: AbortSignal, unmounter: Unmounter | null) {
 
 export class Insertion {
     constructor(
-        public insert: (target: Node, anchor: Node | null) => Unmounter | null
+        public insertTo: (target: Node, anchor: Node | null) => Unmounter | null
     ) { }
 }
 
@@ -180,7 +180,7 @@ export function insert(input: Insertable, target: Node, anchor: Node | null = nu
     if (input === null || typeof input === "undefined") {
         return null;
     } else if (input instanceof Insertion) {
-        return input.insert(target, anchor);
+        return input.insertTo(target, anchor);
     } else if (input instanceof DocumentFragment) {
         return insertFragment(input, target, anchor);
     } else if (input instanceof Node) {
@@ -453,7 +453,7 @@ export function cmp<I extends Insertable, P>(
 
 export type View<M extends object = {}> = {
     model: M;
-    insert(target: Element, anchor?: Node | null): InsertedView;
+    insertTo(target: Element, anchor?: Node | null): InsertedView;
 };
 
 export type InsertedView = {
@@ -470,7 +470,7 @@ export function view<M extends object>(
 ): View<M> {
     return {
         model,
-        insert(target, anchor = null) {
+        insertTo(target, anchor = null) {
             const abortController = new AbortController();
             const unmountSignal = abortController.signal;
             const span = new NodeSpan(target, anchor, "view");

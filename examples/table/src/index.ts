@@ -52,7 +52,7 @@ load();
 view.model.sorting.listen(() => load());
 view.model.page.listen(() => load());
 
-const { querySelector } = view.insert(document.getElementById("app"));
+const { querySelector } = view.insertTo(document.getElementById("app"));
 
 querySelector("thead")?.addEventListener("click", (e) => {
     e.preventDefault();

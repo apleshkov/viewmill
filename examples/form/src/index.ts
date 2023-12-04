@@ -58,7 +58,7 @@ const formItems: FormItem[] = [
 
 const view = FormView();
 
-const { querySelector } = view.insert(document.getElementById("app")!);
+const { querySelector } = view.insertTo(document.getElementById("app")!);
 
 querySelector("#shouldConfirmPassword")?.addEventListener("change", (e) => {
     const input = e.target as HTMLInputElement;
