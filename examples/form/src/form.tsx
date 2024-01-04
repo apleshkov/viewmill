@@ -7,8 +7,8 @@ export default (
 ) => {
     const items = validationResult?.items;
     return <>
-        {loadingState?.success ? <div class="alert alert-success">{loadingState?.success}</div> : null}
-        {loadingState?.error ? <div class="alert alert-danger">{loadingState?.error}</div> : null}
+        {loadingState?.success && <div class="alert alert-success">{loadingState?.success}</div>}
+        {loadingState?.error && <div class="alert alert-danger">{loadingState?.error}</div>}
         <form>
             <fieldset disabled={!!loadingState?.loading}>
                 <div class="row gt-3 mb-3">

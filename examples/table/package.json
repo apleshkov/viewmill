@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "views": "npx viewmill --verbose --suffix \"-view\" --watch src",
-    "bundler": "npx esbuild src/index.ts src/index.css --bundle --outdir=www/x --servedir=www --target=es6 --sourcemap --watch"
+    "www": "npx esbuild src/index.ts src/index.css --bundle --outdir=www/x --servedir=www --target=es6 --sourcemap --watch"
   },
   "devDependencies": {
     "esbuild": "^0.18.17",

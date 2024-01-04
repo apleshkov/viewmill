@@ -9,7 +9,7 @@ npm i
 
 Run:
 ```sh
-npm run bundler
+npm run www
 ```
 
 Open <http://localhost:8000/>.
