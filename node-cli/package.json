@@ -1,6 +1,6 @@
 {
   "name": "viewmill",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "author": "apleshkov",
   "description": "A CLI tool to transform jsx/tsx files to reactive views in js/ts and then insert them into DOM, so no more need to write a lot of routine code to update DOM on some value change. Works great for Web Components. Written in Rust and based on swc (Speedy Web Compiler).",
