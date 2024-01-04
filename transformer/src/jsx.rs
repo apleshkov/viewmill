@@ -128,7 +128,17 @@ fn tr_child_expr_container(
     match &mut c.expr {
         JSXExpr::JSXEmptyExpr(_) => Ok(None),
         JSXExpr::Expr(expr) => match tr_expr(ctx, expr, scope)? {
-            TrValue::None => Ok(Some(expr.clone())),
+            TrValue::None => match &**expr {
+                Expr::Bin(expr) if expr.op == op!("&&") => {
+                    Ok(Some(Box::new(Expr::Cond(CondExpr {
+                        span: DUMMY_SP,
+                        test: expr.left.clone(),
+                        cons: expr.right.clone(),
+                        alt: null_expr(),
+                    }))))
+                }
+                _ => Ok(Some(expr.clone())),
+            },
             TrValue::Deps(deps) => match &**expr {
                 Expr::Cond(expr) => Ok(Some(ctx.condition(
                     expr.test.clone(),

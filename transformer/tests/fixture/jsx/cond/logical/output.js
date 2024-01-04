@@ -38,7 +38,7 @@ export default function(flag) {
                 ])
             ],
             [
-                true && 1
+                true ? 1 : null
             ],
             viewmill.el("<p></p>", (container, unmountSignal1)=>{
                 const p__1 = container.firstChild;
